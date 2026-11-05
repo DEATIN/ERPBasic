@@ -1,0 +1,17 @@
+cff-version: 1.2.0
+message: 'Если используете ERP Basic в исследовании или учебной работе, укажите ссылку на проект.'
+title: 'ERP Basic — базовая ERP для малого бизнеса'
+type: software
+authors:
+  - name: DEATIN
+repository-code: https://github.com/DEATIN/ERPBasic
+url: https://deatin.github.io/ERPBasic/
+version: 0.3.0
+date-released: '2026-11-05'
+abstract: 'Русскоязычная демонстрация продаж, закупок, склада, денег и управленческих отчётов с локальным хранением данных.'
+keywords:
+  - управленческий учёт
+  - малый бизнес
+  - склад
+  - продажи
+  - закупки

@@ -1,0 +1,19 @@
+{
+  "name": "ERP Basic — среда разработки",
+  "image": "mcr.microsoft.com/devcontainers/javascript-node:5-22-bookworm@sha256:33cc368bc8ce9dac872703c7b9ebf6dabcc7b14bbb8cfd2b64be0e7232e3a361",
+  "features": {
+    "ghcr.io/devcontainers/features/python:1": {
+      "version": "3.12"
+    }
+  },
+  "forwardPorts": [
+    8000
+  ],
+  "portsAttributes": {
+    "8000": {
+      "label": "Демонстрация ERP Basic",
+      "onAutoForward": "openBrowser"
+    }
+  },
+  "postCreateCommand": "npm run проверка && npm run тесты"
+}

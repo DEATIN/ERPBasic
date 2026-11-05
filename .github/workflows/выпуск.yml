@@ -1,0 +1,101 @@
+name: Подготовка выпуска ERP Basic
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Версия выпуска, например v0.3.0
+        required: true
+        default: v0.3.0
+        type: string
+      preview:
+        description: Предварительная демонстрационная версия
+        required: true
+        default: true
+        type: boolean
+
+permissions:
+  contents: read
+
+concurrency:
+  group: vypusk-erpbasic
+  cancel-in-progress: false
+
+jobs:
+  vypusk:
+    name: Проверить, подписать и опубликовать выпуск
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+      id-token: write
+      attestations: write
+    env:
+      ERP_RELEASE_TAG: ${{ inputs.version }}
+      ERP_PRE_RELEASE: ${{ inputs.preview }}
+    steps:
+      - name: Получить проверяемые исходники
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+        with:
+          persist-credentials: false
+      - name: Подготовить Node.js 22
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444
+        with:
+          node-version: '22'
+      - name: Сверить версию выпуска
+        run: node -e "const p=require('./package.json');if(process.env.ERP_RELEASE_TAG!=='v'+p.version)throw Error('Версия выпуска должна совпадать с package.json')"
+      - name: Проверить интерфейс
+        run: npm run проверка
+      - name: Проверить учётные сценарии
+        run: npm run тесты
+      - name: Собрать архив и контрольную сумму
+        run: python3 инструменты/сборка-выпуска.py --version "$ERP_RELEASE_TAG" --output artifacts
+      - name: Подтвердить происхождение архива
+        id: podpis
+        uses: actions/attest-build-provenance@977bb373ede98d70efdf65b84cb5f73e068dcc2a
+        with:
+          subject-path: artifacts/*.zip
+      - name: Прикрепить файлы и опубликовать выпуск
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd
+        env:
+          ERP_ATTESTATION_PATH: ${{ steps.podpis.outputs.bundle-path }}
+        with:
+          script: |
+            const fs = require('node:fs');
+            const tag = process.env.ERP_RELEASE_TAG;
+            const preview = process.env.ERP_PRE_RELEASE === 'true';
+            const body = [
+              '## ERP Basic: демонстрационная версия',
+              'Русский интерфейс продаж, закупок, склада, денег и управленческих отчётов.',
+              'Светлая и тёмная темы, связанные документы, CSV и резервные копии JSON.',
+              '## Запуск',
+              'Распакуйте архив и выполните команду: python3 инструменты/запуск.py',
+              '## Проверка происхождения',
+              'К архиву приложена контрольная сумма SHA-256. Подпись сборки доступна в подтверждениях GitHub.',
+              '## Границы версии',
+              'Данные хранятся в браузере. Серверная база, совместная работа и реальный обмен находятся в плане развития.',
+              '[Открыть демонстрацию](https://deatin.github.io/ERPBasic/)'
+            ].join('\n\n');
+            const {data: release} = await github.rest.repos.createRelease({
+              ...context.repo, tag_name: tag, target_commitish: context.sha,
+              name: 'ERP Basic ' + tag + ' — демонстрационная версия',
+              body, draft: true, prerelease: preview, make_latest: 'false'
+            });
+            const files = [
+              {name: 'ERPBasic-' + tag + '.zip', path: 'artifacts/ERPBasic-' + tag + '.zip', type: 'application/zip'},
+              {name: 'ERPBasic-' + tag + '.zip.sha256', path: 'artifacts/ERPBasic-' + tag + '.zip.sha256', type: 'text/plain'},
+              {name: 'ERPBasic-' + tag + '.sigstore.json', path: process.env.ERP_ATTESTATION_PATH, type: 'application/json'}
+            ];
+            for (const file of files) {
+              const data = fs.readFileSync(file.path);
+              await github.rest.repos.uploadReleaseAsset({
+                ...context.repo, release_id: release.id, name: file.name, data,
+                headers: {'content-type': file.type, 'content-length': data.length}
+              });
+              core.info('Подготовлен файл: ' + file.name);
+            }
+            const {data: published} = await github.rest.repos.updateRelease({
+              ...context.repo, release_id: release.id, draft: false, prerelease: preview,
+              make_latest: preview ? 'false' : 'true'
+            });
+            core.notice('Выпуск опубликован: ' + published.html_url);

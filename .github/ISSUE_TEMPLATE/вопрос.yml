@@ -1,0 +1,22 @@
+name: Вопрос по работе
+description: Уточнить поведение интерфейса, документа или расчёта
+title: 'Вопрос: '
+body:
+  - type: markdown
+    attributes:
+      value: Рабочий язык проекта — русский. Общие вопросы также можно задать в обсуждениях.
+  - type: textarea
+    id: question
+    attributes:
+      label: В чём вопрос?
+    validations:
+      required: true
+  - type: textarea
+    id: scenario
+    attributes:
+      label: Какой сценарий вы проверяете?
+      description: Укажите раздел, документ и ожидаемый результат на вымышленных данных.
+  - type: input
+    id: version
+    attributes:
+      label: Версия и способ запуска

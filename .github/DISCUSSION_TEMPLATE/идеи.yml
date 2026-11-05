@@ -1,0 +1,20 @@
+title: "Идея: "
+labels: [улучшение]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Какая задача сейчас вызывает затруднение?
+      description: Расскажите о рабочем сценарии на вымышленных данных.
+    validations:
+      required: true
+  - type: textarea
+    id: suggestion
+    attributes:
+      label: Как должно работать удобнее?
+    validations:
+      required: true
+  - type: textarea
+    id: result
+    attributes:
+      label: Какой результат покажет, что улучшение полезно?

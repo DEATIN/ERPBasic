@@ -1,1 +1,8 @@
-blank_issues_enabled: true
+blank_issues_enabled: false
+contact_links:
+  - name: Обсуждения и помощь
+    url: https://github.com/DEATIN/ERPBasic/discussions
+    about: Задать вопрос, обсудить идею или поделиться сценарием на русском языке.
+  - name: Приватное сообщение об уязвимости
+    url: https://github.com/DEATIN/ERPBasic/security
+    about: Передать сведения об уязвимости сопровождающему без публичного раскрытия.

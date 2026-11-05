@@ -28,6 +28,8 @@ jobs:
         run: npm run проверка
       - name: Проверить учётные сценарии
         run: npm run тесты
+      - name: Проверить сборку выпуска
+        run: python3 инструменты/сборка-выпуска.py --version ci --output "$RUNNER_TEMP/erp-release-check"
       - name: Подготовить страницу
         if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
         uses: actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda462b719fa

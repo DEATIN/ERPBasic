@@ -1,0 +1,23 @@
+title: "Вопрос: "
+labels: [вопрос]
+body:
+  - type: markdown
+    attributes:
+      value: Опишите вопрос на русском языке. Используйте демонстрационные данные, без рабочих резервных копий и персональных сведений.
+  - type: textarea
+    id: task
+    attributes:
+      label: Какую задачу вы решаете?
+    validations:
+      required: true
+  - type: textarea
+    id: question
+    attributes:
+      label: В чём нужна помощь?
+      description: Укажите раздел и документ, ожидаемое поведение и то, что уже попробовали.
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Версия, браузер и устройство

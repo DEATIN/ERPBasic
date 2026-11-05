@@ -1,6 +1,7 @@
 name: Ошибка в работе
 description: Сообщить о воспроизводимой ошибке интерфейса или расчётов
 title: "Ошибка: "
+labels: [ошибка]
 body:
   - type: markdown
     attributes:

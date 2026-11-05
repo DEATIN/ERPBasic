@@ -1,0 +1,41 @@
+name: Русское оформление обновлений
+
+on:
+  pull_request_target:
+    types: [opened, reopened, synchronize]
+
+permissions: {}
+
+jobs:
+  oformlenie:
+    name: Оформить запрос Dependabot
+    if: github.event.pull_request.user.login == 'dependabot[bot]' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-24.04
+    permissions:
+      pull-requests: write
+    steps:
+      # Используются только метаданные запроса; исходники его ветки не загружаются.
+      - name: Подготовить русское описание
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd
+        with:
+          script: |
+            const request = context.payload.pull_request;
+            const files = await github.paginate(github.rest.pulls.listFiles, {
+              ...context.repo, pull_number: request.number, per_page: 100
+            });
+            const fileNames = files.map(file => file.filename.replace(/[`\r\n]/g, '')).join('\n');
+            const title = 'Обновление зависимостей GitHub Actions';
+            const body = [
+              '## Что меняется',
+              'Dependabot подготовил обновление версий действий GitHub. Точные версии и контрольные идентификаторы доступны в изменениях файлов.',
+              '## Изменённые файлы',
+              '```text\n' + fileNames + '\n```',
+              '## Проверка перед слиянием',
+              '- Дождаться обязательных проверок интерфейса и анализа кода.',
+              '- Проверить совместимость новых версий действий.',
+              '- Подтвердить слияние средствами GitHub после проверки.',
+              'Рабочий язык проекта — русский.'
+            ].join('\n\n');
+            if (request.title !== title || request.body !== body) {
+              await github.rest.pulls.update({...context.repo, pull_number: request.number, title, body});
+            }

@@ -1,0 +1,17 @@
+changelog:
+  exclude:
+    labels:
+      - служебное
+  categories:
+    - title: Новые возможности
+      labels: [улучшение]
+    - title: Исправления
+      labels: [ошибка]
+    - title: Безопасность
+      labels: [безопасность]
+    - title: Документация
+      labels: [документация]
+    - title: Обновления зависимостей
+      labels: [зависимости]
+    - title: Другие изменения
+      labels: ['*']
