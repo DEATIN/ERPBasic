@@ -1,0 +1,44 @@
+/* Уведомление о демо не перекрывает навигацию и документы. */
+:root{--erp-host-height:44px}
+.erp-demo-host{padding-top:var(--erp-host-height)}
+.erp-host-notice{position:fixed;inset:0 0 auto;height:var(--erp-host-height);z-index:40;display:flex;align-items:center;gap:16px;padding:0 16px;background:var(--surface);border-bottom:1px solid var(--line);color:var(--muted);font-size:11px}
+.erp-host-notice>a{white-space:nowrap;color:var(--link-color);padding:7px 0}
+.erp-host-notice>strong{font-size:11px;font-weight:600;color:var(--text);white-space:nowrap}
+.erp-host-description{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.erp-host-about{margin-left:auto;flex-shrink:0}
+.erp-host-about summary{cursor:pointer;padding:6px 0;color:var(--secondary-text);white-space:nowrap}
+.erp-host-explanation{position:absolute;right:12px;top:calc(var(--erp-host-height) + 6px);width:min(420px,calc(100vw - 24px));padding:18px 20px;background:var(--surface);border:1px solid var(--line);border-radius:8px;box-shadow:0 8px 28px #0002;font-size:12px;line-height:1.7}
+.erp-host-explanation p{margin:0 0 10px}.erp-host-explanation p:last-child{margin:0}
+.erp-demo-host .rail,.erp-demo-host .sidebar{top:var(--erp-host-height)}
+.erp-demo-host .topbar{top:var(--erp-host-height)}
+.erp-demo-host .workspace{min-height:calc(100vh - var(--erp-host-height))}
+.erp-demo-host .mobile-overlay.visible{top:var(--erp-host-height)}
+.erp-demo-host .skip:focus{top:calc(var(--erp-host-height) + 8px)}
+.erp-progress{appearance:none;display:block;border:0;border-radius:8px;background:var(--track-bg);color:var(--progress-fill);padding:0}
+.erp-progress::-webkit-progress-bar{background:var(--track-bg);border-radius:8px}
+.erp-progress::-webkit-progress-value{background:var(--progress-fill);border-radius:8px}
+.erp-progress::-moz-progress-bar{background:var(--progress-fill);border-radius:8px}
+@media(max-width:640px){.erp-host-notice{padding-inline:10px;gap:12px;font-size:10px}.erp-host-notice>strong{font-size:10px}.erp-host-description{display:none}.erp-host-explanation{font-size:11px}}
+@media print{.erp-host-notice{display:none}.erp-demo-host{padding-top:0}.erp-demo-host .workspace{min-height:auto}}
+
+/* Вынесенные стили совместимы с политикой безопасности Clientora. */
+.erp-text-warning{color:#c88}
+.erp-text-muted{color:var(--muted)}
+.erp-text-soft{color:var(--soft-text)}
+.erp-flex-10{display:flex;align-items:center;gap:10px}
+.erp-flex-4{display:flex;align-items:center;gap:4px}
+.erp-list-note{font-size:11px;margin:0 0 15px 25px;color:var(--muted)}
+.erp-push-right{margin-left:auto}
+.erp-push-left{margin-right:auto}
+.erp-mt-10{margin-top:10px}
+.erp-mt-15{margin-top:15px}
+.erp-mt-17{margin-top:17px}
+.erp-mt-20{margin-top:20px}
+.erp-mt-22{margin-top:22px}
+.erp-m-0{margin:0}
+.erp-summary-gap{margin:8px 0 15px}
+.erp-flat-start{padding-left:0;padding-top:0}
+.erp-p-0{padding:0}
+.erp-col-28{width:28px}
+.erp-col-30{width:30px}
+.erp-discount-input{width:65px;border:0;background:var(--field);border-radius:4px;padding:3px 6px;text-align:right}

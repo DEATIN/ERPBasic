@@ -1,0 +1,6 @@
+# Локальные зависимости и временные файлы
+node_modules/
+__pycache__/
+*.pyc
+.DS_Store
+*.zip

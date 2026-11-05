@@ -1,0 +1,24 @@
+name: Предложение по развитию
+description: Предложить улучшение на основе задачи пользователя
+title: "Предложение: "
+body:
+  - type: textarea
+    id: task
+    attributes:
+      label: Какую задачу нужно решить?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Предлагаемое поведение
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Как проверить результат?
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Рассмотренные варианты

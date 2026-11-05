@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="ru">
+<head><meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' blob: data:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="ERP Basic — демонстрация учёта малого бизнеса. Продажи, закупки, склад и деньги. Данные хранятся в браузере.">
+<meta name="theme-color" content="#f8f8f8"><title>ERPbasic — Продажи</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232e89ef'/%3E%3Cpath d='M9 8h15M9 16h12M9 24h15' stroke='white' stroke-width='3'/%3E%3C/svg%3E">
+<script src="theme.js"></script>
+<link rel="stylesheet" href="assets/app.css"><link rel="stylesheet" href="assets/themes.css">
+<link rel="stylesheet" href="host.css">
+<meta name="robots" content="noindex,nofollow">
+</head><body class="erp-demo-host">
+<!-- ERP Basic работает с демонстрационными данными этого браузера. -->
+<aside class="erp-host-notice" aria-label="О демонстрационной версии">
+  <a href="https://clientora.ru/#business-growth">← Clientora</a>
+  <strong>ERP Basic · демо</strong>
+  <span class="erp-host-description">Данные хранятся только в этом браузере</span>
+  <details class="erp-host-about"><summary>О версии</summary><div class="erp-host-explanation">
+    <p>Это демонстрационная версия интерфейса ERP Basic: продажи, закупки, склад, деньги и отчёты. Можно создавать и изменять демонстрационные документы.</p>
+    <p>Данные хранятся только в этом браузере. Перед очисткой хранилища сохраните резервную копию JSON. Между сотрудниками и устройствами данные не передаются.</p>
+    <p>Реальный обмен с Clientora и ERPNext не подключён. Серверный учёт, права доступа, регламентированная отчётность и автоматический переход на полную ERP требуют отдельной реализации.</p>
+  </div></details>
+</aside>
+
+<a href="#content" class="skip">К содержимому</a>
+<div id="app"></div><div id="toasts" role="status" aria-live="polite"></div>
+<dialog id="dialog"></dialog><script src="assets/app.js"></script>
+</body></html>

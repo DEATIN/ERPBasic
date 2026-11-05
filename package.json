@@ -1,0 +1,11 @@
+{
+  "name": "erpbasic",
+  "version": "0.3.0",
+  "private": true,
+  "description": "ERP Basic — базовая ERP для малого бизнеса. Русский интерфейс и демонстрационный учёт в браузере.",
+  "scripts": {
+    "проверка": "node --check dist/assets/app.js",
+    "тесты": "node --test tests/учёт.test.cjs",
+    "запуск": "python3 инструменты/запуск.py"
+  }
+}
