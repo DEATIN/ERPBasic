@@ -30,11 +30,12 @@ jobs:
         run: npm run тесты
       - name: Проверить сборку выпуска
         run: python3 инструменты/сборка-выпуска.py --version ci --output "$RUNNER_TEMP/erp-release-check"
-      - name: Подготовить страницу
-        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+      - name: Подготовить артефакт страницы
         uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9
         with:
           path: dist
+          # Сохраняем .nojekyll: новая версия действия исключает скрытые файлы по умолчанию.
+          include-hidden-files: true
 
   publikaciya:
     name: Опубликовать демонстрацию
