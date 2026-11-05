@@ -1,0 +1,3 @@
+# Исходники интерфейса в dist поддерживаются вручную.
+dist/** linguist-generated=false
+dist/** linguist-vendored=false
