@@ -5,3 +5,11 @@ __pycache__/
 .DS_Store
 *.zip
 artifacts/
+.venv/
+.pytest_cache/
+credentials.json
+postgresql-credentials.json
+site_config.json
+common_site_config.json
+*.key.json
+erp-runtime*/

@@ -1,0 +1,106 @@
+/* Semantic palettes shared by workspaces, lists, forms, dialogs and charts. */
+:root {
+  color-scheme: light;
+  --bg: #fff;
+  --surface: #fff;
+  --side: #f8f8f8;
+  --rail-bg: #f7f7f7;
+  --header-bg: #fffffff5;
+  --text: #252525;
+  --secondary-text: #626262;
+  --muted: #777;
+  --soft-text: #8a8a8a;
+  --line: #e8e8e8;
+  --line-strong: #ccc;
+  --field: #f3f3f3;
+  --control-bg: #f2f2f2;
+  --subtle-bg: #fafafa;
+  --hover-bg: #ededed;
+  --active-bg: #dfdfdf;
+  --track-bg: #f0f0f0;
+  --selection-bg: #f3f5f7;
+  --primary-bg: #242424;
+  --on-primary: #fff;
+  --tooltip-bg: #292929;
+  --blue: #2e89ef;
+  --focus-color: #8cbbf3;
+  --link-color: #5b83aa;
+  --success-bg: #e9f5ed;
+  --success-text: #48815d;
+  --warning-bg: #fff3df;
+  --warning-subtle-bg: #fffdf8;
+  --warning-text: #99743b;
+  --danger-bg: #fceaea;
+  --danger-text: #b16666;
+  --blue-bg: #e9f2fc;
+  --purple-bg: #f2edfc;
+  --purple-text: #8b70ad;
+  --progress-fill: #6caa84;
+  --chart-color: #d98caf;
+  --overlay: #0004;
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #191d23;
+  --surface: #20252d;
+  --side: #1e232b;
+  --rail-bg: #1a1f26;
+  --header-bg: #191d23f5;
+  --text: #e5eaf0;
+  --secondary-text: #c5cdd8;
+  --muted: #a6b0bd;
+  --soft-text: #97a3b2;
+  --line: #343c48;
+  --line-strong: #4b5768;
+  --field: #292f39;
+  --control-bg: #2b323d;
+  --subtle-bg: #1d222a;
+  --hover-bg: #303946;
+  --active-bg: #364252;
+  --track-bg: #2c3541;
+  --selection-bg: #283445;
+  --primary-bg: #e1e7ef;
+  --on-primary: #20262f;
+  --tooltip-bg: #e1e7ef;
+  --blue: #478fef;
+  --focus-color: #79aef0;
+  --link-color: #9bc2ee;
+  --success-bg: #203d30;
+  --success-text: #9bd5af;
+  --warning-bg: #403420;
+  --warning-subtle-bg: #29261f;
+  --warning-text: #e3c38b;
+  --danger-bg: #432b32;
+  --danger-text: #eaa5ad;
+  --blue-bg: #25374c;
+  --purple-bg: #352d47;
+  --purple-text: #c2a9e8;
+  --progress-fill: #80b994;
+  --chart-color: #dca2c2;
+  --overlay: #0008;
+}
+/* Fixed brand colors and high contrast controls. */
+.brand { color: #fff; }
+.btn.primary:hover { background: var(--primary-bg); filter: brightness(.93); }
+input::placeholder,textarea::placeholder { color: var(--soft-text); opacity: 1; }
+input[type="checkbox"] { accent-color: var(--primary-bg); }
+.theme-toggle { flex-shrink: 0; }
+.theme-preferences { margin: 18px 0 23px; }
+.theme-preferences h3 { font-size: 12px; font-weight: 500; margin: 0 0 10px; color: var(--muted); }
+.theme-options { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.theme-option { display: flex; align-items: center; gap: 9px; border: 1px solid var(--line); border-radius: 8px; padding: 12px; color: var(--secondary-text); background: var(--subtle-bg); text-align: left; }
+.theme-option:hover { background: var(--hover-bg); }
+.theme-option[aria-pressed="true"] { color: var(--text); border-color: var(--line-strong); background: var(--selection-bg); }
+.theme-check { margin-left: auto; visibility: hidden; }
+.theme-option[aria-pressed="true"] .theme-check { visibility: visible; }
+.theme-check svg { width: 14px; height: 14px; }
+:root[data-theme="dark"] .brand { box-shadow: 0 0 0 1px #ffffff14; }
+:root[data-theme="dark"] .side-item.active { box-shadow: 0 1px 3px #0003; }
+:root[data-theme="dark"] dialog,:root[data-theme="dark"] .dropdown,:root[data-theme="dark"] .toast { box-shadow: 0 10px 45px #0005; }
+:root[data-theme="dark"] .field input:disabled,:root[data-theme="dark"] .field select:disabled,:root[data-theme="dark"] .field textarea:disabled { color: var(--secondary-text); opacity: .8; }
+:root[data-theme="dark"] ::selection { background: #476183; color: #fff; }
+@media print {
+  :root[data-theme] { color-scheme: light; --bg:#fff; --surface:#fff; --text:#111; --secondary-text:#333; --muted:#555; --soft-text:#666; --line:#ddd; --field:#fff; --side:#fff; --header-bg:#fff; --subtle-bg:#fff; --control-bg:#eee; --primary-bg:#222; --on-primary:#fff; --selection-bg:#eee; --success-bg:#eee; --success-text:#333; --warning-bg:#eee; --warning-text:#333; --danger-bg:#eee; --danger-text:#333; --blue-bg:#eee; --link-color:#333; }
+  .theme-toggle { display: none !important; }
+}
+dialog { background: var(--surface); }

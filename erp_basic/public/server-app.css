@@ -1,0 +1,148 @@
+/* Состояния серверного режима. Компоновка и обе темы используют общие стили ERP Basic. */
+.erp-server-host { background: var(--bg); color: var(--text); }
+.server-start { max-width: 480px; margin: 12vh auto; padding: 28px; }
+.server-login { max-width: 420px; margin: 10vh auto; padding: 32px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
+.server-login h1 { margin: 8px 0; font-size: 26px; font-weight: 550; letter-spacing: -.6px; }
+.server-login .field { margin: 18px 0; }
+.server-login .btn.primary { width: 100%; justify-content: center; margin-top: 8px; }
+.server-login .server-brand { display: flex; align-items: center; justify-content: space-between; }
+.server-login .brand { width: 35px; height: 35px; }
+.server-login-note { font-size: 12px; color: var(--muted); line-height: 1.65; }
+.server-connected { display: flex; align-items: center; gap: 6px; color: var(--success-text); font-size: 10px; }
+.server-connected::before { content: ''; width: 6px; height: 6px; background: var(--success-text); border-radius: 50%; flex: 0 0 auto; }
+.server-company { width: 100%; min-width: 0; margin: 5px 0 8px; padding: 7px; border: 1px solid var(--line); border-radius: 5px; color: var(--text); background: var(--field); font: inherit; }
+.server-error, .server-notice { margin: 16px 20px; padding: 14px 16px; border: 1px solid var(--line); border-radius: 7px; font-size: 12px; line-height: 1.65; overflow-wrap: anywhere; }
+.server-error { color: var(--danger-text); background: var(--danger-bg); border-color: var(--danger-text); }
+.server-error p, .server-notice p { margin: 0 0 10px; }
+.server-error p:last-child, .server-notice p:last-child { margin: 0; }
+.server-login .server-error { margin: 15px 0; }
+.server-notice { color: var(--secondary-text); background: var(--subtle-bg); }
+.server-unknown { background: var(--warning-bg); color: var(--warning-text); border-color: var(--warning-text); }
+.server-loading { padding: 54px 24px; color: var(--muted); text-align: center; font-size: 13px; }
+.server-loading::before { content: ''; display: block; width: 21px; height: 21px; margin: 0 auto 16px; border: 2px solid var(--line); border-top-color: var(--link-color); border-radius: 50%; animation: server-spin 1s linear infinite; }
+@keyframes server-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .server-loading::before { animation: none; } }
+.server-empty { padding: 48px 24px; text-align: center; color: var(--muted); font-size: 12px; }
+.server-empty h2 { color: var(--text); margin: 0 0 10px; font-size: 16px; font-weight: 500; }
+.server-empty p { max-width: 480px; margin: 0 auto 18px; }
+.server-top-company { font-size: 11px; color: var(--muted); font-weight: 400; }
+.server-row-link { font-weight: 500; color: var(--link-color); }
+.server-list .table-scroller { min-height: 190px; }
+.server-list th { white-space: nowrap; }
+.server-list td { vertical-align: middle; }
+.server-list td small { display: block; margin-top: 4px; color: var(--soft-text); }
+.server-amount { font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; }
+.server-pagination { display: flex; align-items: center; justify-content: space-between; gap: 12px; border-top: 1px solid var(--line); margin: 0 20px; padding: 14px 0; font-size: 11px; color: var(--muted); }
+.server-pagination .btn { font-size: 11px; }
+.server-page-buttons { display: flex; gap: 8px; align-items: center; }
+.server-summary { display: flex; flex-wrap: wrap; gap: 20px; padding: 17px 20px; border-top: 1px solid var(--line); }
+.server-summary div { min-width: 150px; }
+.server-summary dt { font-size: 10px; color: var(--muted); margin: 0 0 4px; }
+.server-summary dd { font-size: 19px; font-variant-numeric: tabular-nums; margin: 0; font-weight: 500; }
+.server-summary-note { width: 100%; color: var(--muted); font-size: 10px; margin: 0; }
+.server-document { max-width: 1200px; }
+.server-document fieldset { padding: 0; margin: 0; border: 0; min-width: 0; }
+.server-document fieldset:disabled { opacity: .82; }
+.server-document .form-section { border-bottom: 1px solid var(--line); }
+.server-document .field input[type="checkbox"] { width: auto; min-height: auto; }
+.server-document h2 { font-size: 13px; font-weight: 500; margin: 0 0 16px; }
+.server-doc-table { overflow: auto; }
+.server-doc-table table { min-width: 650px; width: 100%; }
+.server-doc-table td { padding: 8px 5px; vertical-align: top; }
+.server-doc-table th { padding-left: 5px; }
+.server-doc-table input { min-width: 80px; width: 100%; padding: 7px 9px; font: inherit; font-size: 12px; border: 1px solid var(--line); border-radius: 5px; background: var(--field); color: var(--text); }
+.server-doc-table .server-item-cell { min-width: 230px; }
+.server-doc-table .server-qty-cell { width: 95px; }
+.server-doc-table .server-rate-cell { width: 120px; }
+.server-doc-table .server-uom-cell { width: 100px; }
+.server-doc-table .server-remove-cell { width: 35px; }
+.server-item-hint { display: block; padding-top: 4px; font-size: 10px; color: var(--muted); }
+.server-document-footer { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 16px 20px; border-top: 1px solid var(--line); }
+.server-document-footer .small { color: var(--muted); }
+.server-reference { position: relative; }
+.server-reference-results { position: absolute; left: 0; right: 0; top: 100%; z-index: 25; max-height: 260px; overflow-y: auto; background: var(--surface); border: 1px solid var(--line-strong); border-radius: 7px; box-shadow: 0 6px 18px #0002; }
+.server-reference-results[hidden] { display: none; }
+.server-reference-results button { display: block; width: 100%; padding: 10px 12px; font: inherit; font-size: 12px; text-align: left; border: 0; background: transparent; color: var(--text); cursor: pointer; }
+.server-reference-results button:hover, .server-reference-results button:focus { background: var(--selection-bg); outline: 2px solid var(--focus-color); outline-offset: -2px; }
+.server-reference-results button small { display: block; color: var(--muted); margin-top: 3px; font-size: 10px; }
+.server-reference-status { display: block; padding: 10px; color: var(--muted); font-size: 11px; }
+.server-field-hint { font-size: 10px; color: var(--muted); line-height: 1.6; }
+.server-journal { padding: 0 20px 20px; }
+.server-journal pre { white-space: pre-wrap; overflow-wrap: anywhere; background: var(--subtle-bg); padding: 12px; border-radius: 5px; font-size: 11px; }
+.server-welcome { max-width: 1000px; }
+.server-welcome h1 { font-size: 24px; letter-spacing: -.6px; font-weight: 550; margin: 0 0 8px; }
+.server-welcome .cards { margin: 24px 0; }
+.server-welcome .metric { display: block; min-height: 120px; }
+.server-welcome .metric-value { font-size: 18px; margin: 14px 0 9px; }
+.server-welcome .metric-note { line-height: 1.6; }
+.server-flow { display: grid; gap: 10px; margin-top: 20px; }
+.server-flow a { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border: 1px solid var(--line); border-radius: 7px; background: var(--surface); font-size: 12px; }
+.server-flow a strong { display: block; font-weight: 500; }
+.server-flow a small { display: block; color: var(--muted); font-size: 11px; margin-top: 4px; }
+.server-flow .server-flow-number { color: var(--muted); border: 1px solid var(--line); border-radius: 50%; width: 24px; height: 24px; display: grid; place-items: center; flex: 0 0 auto; font-size: 11px; }
+.server-dirty { color: var(--warning-text); font-size: 10px; }
+.server-readonly { font-size: 11px; color: var(--muted); }
+.server-role { margin-top: 4px; color: var(--muted); font-size: 10px; overflow-wrap: anywhere; }
+.server-save-status { font-size: 11px; color: var(--muted); margin-left: auto; }
+.erp-server-host .top-title { min-width: 0; }
+.erp-server-host .top-title strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.erp-server-host .sidebar { width: var(--sidebar); }
+.erp-server-host .side-footer { padding-bottom: 14px; }
+.erp-server-host .avatar { overflow: hidden; }
+.erp-server-host button:disabled { cursor: not-allowed; opacity: .5; }
+.erp-server-host .btn:disabled { pointer-events: none; }
+@media (max-width:800px) {
+  .server-top-company { display: none; }
+  .server-summary { gap: 14px; }
+  .server-summary div { min-width: 130px; }
+}
+@media (max-width:640px) {
+  .server-login { margin: 6vh 16px; padding: 24px; }
+  .server-error, .server-notice { margin: 12px; }
+  .server-pagination { margin: 0 12px; flex-wrap: wrap; }
+  .server-page-buttons { margin-left: auto; }
+  .server-document-footer { flex-wrap: wrap; padding: 14px 12px; }
+  .server-summary { padding: 14px 16px; }
+  .server-summary dd { font-size: 17px; }
+  .server-welcome .cards { grid-template-columns: 1fr; }
+  .server-welcome .cards > .metric:last-child { grid-column: auto; }
+  .erp-server-host .actions { flex-wrap: wrap; justify-content: flex-end; }
+  .erp-server-host .topbar { min-height: 55px; height: auto; padding-top: 9px; padding-bottom: 9px; }
+}
+@media print {
+  .server-connected, .server-notice, .server-error, .server-pagination, .server-document-footer { display: none!important; }
+  .server-document { max-width: none; }
+}
+.erp-server-host .brand { font-size: 20px; font-weight: 700; }
+.server-reference-control { display: flex; gap: 3px; align-items: center; }
+.server-reference-control input { min-width: 70px; flex: 1; }
+.server-reference-control .icon-btn { flex: 0 0 29px; margin-top: 4px; }
+.server-doc-table .server-reference-control .icon-btn { margin-top: 0; }
+.server-doc-table select { max-width: 100%; background: var(--field); color: var(--text); padding: 7px; border: 1px solid var(--line); border-radius: 5px; }
+.server-lookup-rows { max-height: 50vh; overflow-y: auto; }
+.server-lookup-rows button { display: block; width: 100%; text-align: left; background: var(--surface); color: var(--text); border: 0; border-bottom: 1px solid var(--line); padding: 13px 20px; cursor: pointer; font: inherit; }
+.server-lookup-rows button:hover, .server-lookup-rows button:focus-visible { background: var(--selection-bg); }
+.server-lookup-rows strong { display: block; font-size: 12px; font-weight: 500; }
+.server-lookup-rows small { display: block; margin-top: 4px; font-size: 10px; color: var(--muted); }
+#server-dialog { background: var(--surface); }
+#server-dialog .filterbar input { width: 100%; padding: 8px; background: var(--field); color: var(--text); border: 1px solid var(--line); border-radius: 5px; }
+.erp-server-host .filter.search { display: flex; align-items: center; gap: 7px; }
+.erp-server-host .filter.search input { background: transparent; width: 100%; min-width: 0; border: 0; outline: 0; color: var(--text); font: inherit; }
+.erp-server-host .side-tools { display: block; }
+.erp-server-host .server-list { padding-bottom: 25px; }
+.erp-server-host .side-footer .btn { margin-top: 12px; }
+.server-recovery { max-width: 680px; }
+.server-recovery h1 { font-size: 21px; font-weight: 500; margin-bottom: 24px; }
+.server-recovery dl { display: grid; grid-template-columns: 140px minmax(0, 1fr); gap: 12px 20px; font-size: 12px; }
+.server-recovery dt { color: var(--muted); }
+.server-recovery dd { margin: 0; overflow-wrap: anywhere; }
+.server-exchange-tabs { display: flex; gap: 8px; margin: 18px 20px; flex-wrap: wrap; }
+.server-exchange-reason { min-width: 200px; max-width: 350px; overflow-wrap: anywhere; }
+.server-exchange-reason .btn { margin-top: 8px; }
+.server-exchange td { overflow-wrap: anywhere; }
+.server-exchange .table-scroller { max-width: 100%; }
+@media (max-width: 640px) {
+  .server-recovery dl { grid-template-columns: 1fr; gap: 5px; }
+  .server-recovery dd { margin-bottom: 12px; }
+  .server-exchange-tabs { margin: 12px; }
+}

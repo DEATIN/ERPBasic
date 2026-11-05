@@ -1,0 +1,27 @@
+{
+  "doctype": "DocType",
+  "name": "ERP Basic Audit Event",
+  "module": "ERP Basic",
+  "autoname": "hash",
+  "engine": "InnoDB",
+  "field_order": ["company", "actor", "reference_doctype", "reference_name", "action", "outcome", "request_id", "before_snapshot", "after_snapshot"],
+  "fields": [
+    {"fieldname": "company", "label": "Организация", "fieldtype": "Link", "options": "Company", "in_list_view": 1},
+    {"fieldname": "actor", "label": "Пользователь", "fieldtype": "Link", "options": "User", "reqd": 1, "in_list_view": 1},
+    {"fieldname": "reference_doctype", "label": "Тип документа", "fieldtype": "Data", "reqd": 1},
+    {"fieldname": "reference_name", "label": "Документ", "fieldtype": "Data", "reqd": 1, "in_list_view": 1},
+    {"fieldname": "action", "label": "Действие", "fieldtype": "Data", "reqd": 1, "in_list_view": 1},
+    {"fieldname": "outcome", "label": "Результат", "fieldtype": "Data", "default": "Success", "reqd": 1},
+    {"fieldname": "request_id", "label": "Идентификатор запроса", "fieldtype": "Data", "reqd": 1},
+    {"fieldname": "before_snapshot", "label": "До", "fieldtype": "Long Text"},
+    {"fieldname": "after_snapshot", "label": "После", "fieldtype": "Long Text"}
+  ],
+  "permissions": [
+    {"role": "System Manager", "read": 1, "report": 1, "export": 1},
+    {"role": "ERP Basic Audit Reader", "read": 1, "report": 1, "export": 1}
+  ],
+  "allow_rename": 0,
+  "track_changes": 0,
+  "sort_field": "creation",
+  "sort_order": "DESC"
+}

@@ -1,0 +1,121 @@
+{
+  "doctype": "DocType",
+  "name": "ERP Basic External Mapping",
+  "module": "ERP Basic",
+  "custom": 0,
+  "engine": "InnoDB",
+  "track_changes": 0,
+  "allow_rename": 0,
+  "autoname": "hash",
+  "field_order": [
+    "company",
+    "connector",
+    "external_type",
+    "external_id",
+    "erp_doctype",
+    "erp_name",
+    "remote_version",
+    "remote_hash",
+    "local_version",
+    "native_modified",
+    "last_result",
+    "business_hash"
+  ],
+  "fields": [
+    {
+      "fieldname": "company",
+      "label": "Company",
+      "fieldtype": "Link",
+      "options": "Company",
+      "reqd": 1,
+      "in_list_view": 1,
+      "search_index": 1
+    },
+    {
+      "fieldname": "connector",
+      "label": "Connector",
+      "fieldtype": "Link",
+      "options": "ERP Basic Connector",
+      "reqd": 1,
+      "search_index": 1
+    },
+    {
+      "fieldname": "external_type",
+      "label": "External type",
+      "fieldtype": "Select",
+      "options": "customer\noffering\norder",
+      "reqd": 1
+    },
+    {
+      "fieldname": "external_id",
+      "label": "External UUID",
+      "fieldtype": "Data",
+      "reqd": 1
+    },
+    {
+      "fieldname": "erp_doctype",
+      "label": "ERP DocType",
+      "fieldtype": "Link",
+      "options": "DocType",
+      "reqd": 1
+    },
+    {
+      "fieldname": "erp_name",
+      "label": "ERP document",
+      "fieldtype": "Dynamic Link",
+      "options": "erp_doctype",
+      "reqd": 0,
+      "search_index": 1
+    },
+    {
+      "fieldname": "remote_version",
+      "label": "Latest incoming version",
+      "fieldtype": "Int",
+      "default": "0",
+      "read_only": 1
+    },
+    {
+      "fieldname": "remote_hash",
+      "label": "Latest incoming fingerprint",
+      "fieldtype": "Data",
+      "read_only": 1
+    },
+    {
+      "fieldname": "local_version",
+      "label": "Outgoing version",
+      "fieldtype": "Int",
+      "default": "0",
+      "read_only": 1
+    },
+    {
+      "fieldname": "native_modified",
+      "label": "Last imported native revision",
+      "fieldtype": "Data",
+      "read_only": 1
+    },
+    {
+      "fieldname": "last_result",
+      "label": "Last accepted result",
+      "fieldtype": "Long Text",
+      "read_only": 1
+    },
+    {
+      "fieldname": "business_hash",
+      "label": "Last imported business fields fingerprint",
+      "fieldtype": "Data",
+      "read_only": 1
+    }
+  ],
+  "permissions": [
+    {
+      "role": "System Manager",
+      "read": 1,
+      "write": 1,
+      "create": 1,
+      "report": 1
+    }
+  ],
+  "sort_field": "modified",
+  "sort_order": "DESC",
+  "states": []
+}

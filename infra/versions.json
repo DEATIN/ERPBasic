@@ -1,0 +1,87 @@
+{
+  "format": 1,
+  "platform": "Debian 13 / Linux x86_64",
+  "python": "3.12.14",
+  "node": "24.22.1",
+  "yarn": "1.22.22",
+  "uv": "0.13.7",
+  "bench": "5.31.1",
+  "frappe": {
+    "version": "15.126.0",
+    "tag": "v15.126.0",
+    "commit": "53bae3ef2550ca96320f036f581446783cd11b72",
+    "url": "https://github.com/frappe/frappe.git"
+  },
+  "erpnext": {
+    "version": "15.124.5",
+    "tag": "v15.124.5",
+    "commit": "e5cde8c4b9e3f7f567a92ca3e65fd411402b89ce",
+    "url": "https://github.com/frappe/erpnext.git"
+  },
+  "redis": {
+    "version": "7.2.17",
+    "tag": "7.2.17",
+    "commit": "83937c51afb53e1c69661c8e1533e0e19b896fe1",
+    "url": "https://github.com/redis/redis.git"
+  },
+  "mariadb": {
+    "version": "10.11.19",
+    "url": "https://archive.mariadb.org/mariadb-10.11.19/bintar-linux-systemd-x86_64/mariadb-10.11.19-linux-systemd-x86_64.tar.gz",
+    "sha256": "7efb257927f31f4422f496246b32590d0b7617f3d9dd900e575de761b302d919",
+    "directory": "mariadb-10.11.19-linux-systemd-x86_64"
+  },
+  "libaio": {
+    "url": "https://deb.debian.org/debian/pool/main/liba/libaio/libaio1_0.3.113-4_amd64.deb",
+    "sha256": "d1476e4beab3d85f8a7d31de94c27472711ed3ef399ce70708e24b259426125b"
+  },
+  "postgresql": {
+    "version": "17.11",
+    "major": 17,
+    "packages": [
+      {
+        "name": "postgresql-17",
+        "version": "17.11-0+deb13u1",
+        "url": "https://deb.debian.org/debian/pool/main/p/postgresql-17/postgresql-17_17.11-0+deb13u1_amd64.deb",
+        "sha256": "d2ce1ddffafa783f9acda4c92c86fc21e8288bff3782d739294f14fa797d7886"
+      },
+      {
+        "name": "postgresql-client-17",
+        "version": "17.11-0+deb13u1",
+        "url": "https://deb.debian.org/debian/pool/main/p/postgresql-17/postgresql-client-17_17.11-0+deb13u1_amd64.deb",
+        "sha256": "9d8558f8dd57c8e92e218a20698383575d53742ca3f9e7c2b7fe5f246d5216ae"
+      },
+      {
+        "name": "libpq5",
+        "version": "17.11-0+deb13u1",
+        "url": "https://deb.debian.org/debian/pool/main/p/postgresql-17/libpq5_17.11-0+deb13u1_amd64.deb",
+        "sha256": "20a4c9ef58b4baf90deda67cfb2cc062871c062830dddc234d28f5ac7931b86b"
+      },
+      {
+        "name": "libicu76",
+        "version": "76.1-4",
+        "url": "https://deb.debian.org/debian/pool/main/i/icu/libicu76_76.1-4_amd64.deb",
+        "sha256": "c1bf762996de9ecba9b9d871e4928a8090f023a3e9e7fa3240b3d90f892a01dc"
+      },
+      {
+        "name": "libldap2",
+        "version": "2.6.10+dfsg-1",
+        "url": "https://deb.debian.org/debian/pool/main/o/openldap/libldap2_2.6.10+dfsg-1_amd64.deb",
+        "sha256": "60069e4a550ca890113fa89d3001417781b18e146ec5d637d31e368dec9909bd"
+      },
+      {
+        "name": "libllvm19",
+        "version": "1:19.1.7-3+b1",
+        "url": "https://deb.debian.org/debian/pool/main/l/llvm-toolchain-19/libllvm19_19.1.7-3+b1_amd64.deb",
+        "sha256": "db0d614d61345ca710fb73e75105f1ec6e38898fa7b3aa99fa7eb7d8b0a11d57"
+      }
+    ]
+  },
+  "ports": {
+    "mariadb": 13306,
+    "redis_cache": 16379,
+    "redis_queue": 16380,
+    "postgresql": 15432,
+    "http": 18000,
+    "socketio": 19000
+  }
+}

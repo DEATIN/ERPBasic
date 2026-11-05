@@ -1,0 +1,108 @@
+{
+  "doctype": "DocType",
+  "name": "ERP Basic Connector",
+  "module": "ERP Basic",
+  "custom": 0,
+  "engine": "InnoDB",
+  "track_changes": 0,
+  "allow_rename": 0,
+  "autoname": "hash",
+  "field_order": [
+    "company",
+    "source_system",
+    "source_tenant",
+    "local_tenant",
+    "integration_user",
+    "enabled",
+    "outbound_enabled",
+    "endpoint",
+    "remote_token",
+    "description",
+    "selling_price_list"
+  ],
+  "fields": [
+    {
+      "fieldname": "company",
+      "label": "Company",
+      "fieldtype": "Link",
+      "options": "Company",
+      "reqd": 1,
+      "in_list_view": 1,
+      "search_index": 1
+    },
+    {
+      "fieldname": "source_system",
+      "label": "Source system",
+      "fieldtype": "Select",
+      "options": "clientora",
+      "default": "clientora",
+      "reqd": 1
+    },
+    {
+      "fieldname": "source_tenant",
+      "label": "Clientora organization UUID",
+      "fieldtype": "Data",
+      "reqd": 1,
+      "search_index": 1
+    },
+    {
+      "fieldname": "local_tenant",
+      "label": "ERP connector identity",
+      "fieldtype": "Data",
+      "read_only": 1
+    },
+    {
+      "fieldname": "integration_user",
+      "label": "Incoming API user",
+      "fieldtype": "Link",
+      "options": "User",
+      "reqd": 1,
+      "search_index": 1
+    },
+    {
+      "fieldname": "enabled",
+      "label": "Enabled",
+      "fieldtype": "Check",
+      "default": "0"
+    },
+    {
+      "fieldname": "outbound_enabled",
+      "label": "Allow outbound exchange",
+      "fieldtype": "Check",
+      "default": "0"
+    },
+    {
+      "fieldname": "endpoint",
+      "label": "Clientora endpoint",
+      "fieldtype": "Small Text"
+    },
+    {
+      "fieldname": "remote_token",
+      "label": "Clientora callback key",
+      "fieldtype": "Password"
+    },
+    {
+      "fieldname": "description",
+      "label": "Description",
+      "fieldtype": "Small Text"
+    },
+    {
+      "fieldname": "selling_price_list",
+      "label": "ERP selling price list",
+      "fieldtype": "Link",
+      "options": "Price List"
+    }
+  ],
+  "permissions": [
+    {
+      "role": "System Manager",
+      "read": 1,
+      "write": 1,
+      "create": 1,
+      "report": 1
+    }
+  ],
+  "sort_field": "modified",
+  "sort_order": "DESC",
+  "states": []
+}

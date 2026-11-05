@@ -2,10 +2,11 @@
   "name": "erpbasic",
   "version": "0.3.0",
   "private": true,
-  "description": "ERP Basic — базовая ERP для малого бизнеса. Русский интерфейс и демонстрационный учёт в браузере.",
+  "description": "ERP Basic — серверный учёт на ERPNext и отдельная браузерная демонстрация.",
   "scripts": {
-    "проверка": "node --check dist/assets/app.js",
-    "тесты": "node --test tests/учёт.test.cjs",
+    "проверка": "node --check dist/assets/app.js && node --check erp_basic/public/server-api.js && node --check erp_basic/public/server-app.js",
+    "тесты": "node --test tests/учёт.test.cjs tests/server-api.test.cjs tests/server-startup.test.cjs",
+    "тесты:браузер": "node --test tests/server-ui.test.cjs",
     "запуск": "python3 инструменты/запуск.py"
   }
 }

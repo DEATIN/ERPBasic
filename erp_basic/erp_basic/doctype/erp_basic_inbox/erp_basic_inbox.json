@@ -1,0 +1,151 @@
+{
+  "doctype": "DocType",
+  "name": "ERP Basic Inbox",
+  "module": "ERP Basic",
+  "custom": 0,
+  "engine": "InnoDB",
+  "track_changes": 0,
+  "allow_rename": 0,
+  "autoname": "hash",
+  "field_order": [
+    "company",
+    "connector",
+    "message_id",
+    "object_type",
+    "object_id",
+    "object_version",
+    "payload_hash",
+    "payload",
+    "status",
+    "attempts",
+    "last_error",
+    "error_message",
+    "result",
+    "correlation_id",
+    "causation_id",
+    "erp_doctype",
+    "erp_name",
+    "processed_at"
+  ],
+  "fields": [
+    {
+      "fieldname": "company",
+      "label": "Company",
+      "fieldtype": "Link",
+      "options": "Company",
+      "reqd": 1,
+      "in_list_view": 1,
+      "search_index": 1
+    },
+    {
+      "fieldname": "connector",
+      "label": "Connector",
+      "fieldtype": "Link",
+      "options": "ERP Basic Connector",
+      "reqd": 1,
+      "search_index": 1
+    },
+    {
+      "fieldname": "message_id",
+      "label": "Message UUID",
+      "fieldtype": "Data",
+      "reqd": 1
+    },
+    {
+      "fieldname": "object_type",
+      "label": "Object type",
+      "fieldtype": "Data"
+    },
+    {
+      "fieldname": "object_id",
+      "label": "External UUID",
+      "fieldtype": "Data"
+    },
+    {
+      "fieldname": "object_version",
+      "label": "Object version",
+      "fieldtype": "Int"
+    },
+    {
+      "fieldname": "payload_hash",
+      "label": "Envelope fingerprint",
+      "fieldtype": "Data",
+      "reqd": 1
+    },
+    {
+      "fieldname": "payload",
+      "label": "Envelope",
+      "fieldtype": "Long Text",
+      "reqd": 1,
+      "read_only": 1
+    },
+    {
+      "fieldname": "status",
+      "label": "State",
+      "fieldtype": "Select",
+      "options": "Pending\nApplied\nStale\nNeeds Mapping\nConflict\nRejected",
+      "default": "Pending",
+      "in_list_view": 1,
+      "search_index": 1
+    },
+    {
+      "fieldname": "attempts",
+      "label": "Attempts",
+      "fieldtype": "Int",
+      "default": "0"
+    },
+    {
+      "fieldname": "last_error",
+      "label": "Error code",
+      "fieldtype": "Data"
+    },
+    {
+      "fieldname": "error_message",
+      "label": "Actionable error",
+      "fieldtype": "Small Text"
+    },
+    {
+      "fieldname": "result",
+      "label": "Result",
+      "fieldtype": "Long Text"
+    },
+    {
+      "fieldname": "correlation_id",
+      "label": "Correlation UUID",
+      "fieldtype": "Data"
+    },
+    {
+      "fieldname": "causation_id",
+      "label": "Causation UUID",
+      "fieldtype": "Data"
+    },
+    {
+      "fieldname": "erp_doctype",
+      "label": "ERP DocType",
+      "fieldtype": "Link",
+      "options": "DocType"
+    },
+    {
+      "fieldname": "erp_name",
+      "label": "ERP document",
+      "fieldtype": "Dynamic Link",
+      "options": "erp_doctype",
+      "search_index": 1
+    },
+    {
+      "fieldname": "processed_at",
+      "label": "Last result at",
+      "fieldtype": "Datetime"
+    }
+  ],
+  "permissions": [
+    {
+      "role": "System Manager",
+      "read": 1,
+      "report": 1
+    }
+  ],
+  "sort_field": "modified",
+  "sort_order": "DESC",
+  "states": []
+}

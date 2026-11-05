@@ -1,0 +1,52 @@
+name: Проверка серверного интерфейса
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: erp-basic-server-ui-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  browser_contract:
+    name: Контракт интерфейса в Chromium
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      NODE_PATH: ${{ runner.temp }}/erp-basic-browser/node_modules
+      ERP_BASIC_SCREENSHOTS: ${{ runner.temp }}/erp-basic-server-ui/screenshots
+    steps:
+      - name: Получить исходники
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Подготовить Node.js 22
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
+        with:
+          node-version: '22'
+      - name: Установить инструменты браузерной проверки
+        run: |
+          mkdir -p "$RUNNER_TEMP/erp-basic-server-ui"
+          npm install --prefix "$RUNNER_TEMP/erp-basic-browser" --ignore-scripts --no-audit --no-fund --package-lock=false playwright@1.62.1
+          node "$RUNNER_TEMP/erp-basic-browser/node_modules/playwright/cli.js" install --with-deps chromium
+      - name: Проверить JavaScript и общие стили
+        run: |
+          node --check erp_basic/public/server-api.js
+          node --check erp_basic/public/server-app.js
+          python3 инструменты/синхронизация-стилей.py --check
+      - name: Проверить транспорт, запуск и восстановление запросов
+        run: node --test --test-reporter=spec --test-reporter-destination=stdout --test-reporter=junit --test-reporter-destination="$RUNNER_TEMP/erp-basic-server-ui/transport.xml" tests/server-api.test.cjs tests/server-startup.test.cjs
+      - name: Проверить интерфейс на явных HTTP-фикстурах
+        run: node --test --test-reporter=spec --test-reporter-destination=stdout --test-reporter=junit --test-reporter-destination="$RUNNER_TEMP/erp-basic-server-ui/browser.xml" tests/server-ui.test.cjs
+      - name: Сохранить отчёты и снимки обеих тем
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: server-interface-contract
+          path: ${{ runner.temp }}/erp-basic-server-ui
+          retention-days: 14
+          if-no-files-found: warn

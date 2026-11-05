@@ -1,0 +1,62 @@
+name: Сервер ERP Basic — MariaDB и восстановление
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: erp-basic-server-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  server:
+    name: ERPNext, конкурентные операции, HTTP и restore
+    runs-on: ubuntu-24.04
+    container: debian:13.1-slim
+    timeout-minutes: 40
+    env:
+      CI: '1'
+      UV_LINK_MODE: copy
+    steps:
+      - name: Системные библиотеки отдельного CI контейнера
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends ca-certificates git curl build-essential pkg-config python3 libffi-dev libssl-dev libpango-1.0-0 libpangoft2-1.0-0 libharfbuzz-subset0 libjpeg62-turbo libcap2 libsystemd0 libxml2 libxslt1.1 libedit2 libz3-4 libreadline8t64 file gzip tar util-linux
+          useradd --create-home erp-ci
+      - name: Получить исходники
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Python 3.12.14
+        uses: actions/setup-python@83679a892e2d95755f2dac6acb0bfd1e9ac5d548
+        with:
+          python-version: '3.12.14'
+      - name: Node 24.22.1
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
+        with:
+          node-version: '24.22.1'
+      - name: Подготовить изолированную рабочую директорию
+        run: |
+          python -m pip install uv==0.13.7
+          mkdir -p "$RUNNER_TEMP/erp-basic-runtime"
+          chown -R erp-ci:erp-ci "$GITHUB_WORKSPACE" "$RUNNER_TEMP/erp-basic-runtime"
+      - name: Установить зависимости по версиям и checksum
+        shell: bash
+        run: |
+          runuser -u erp-ci -- python "инструменты/сервер/окружение.py" --root "$RUNNER_TEMP/erp-basic-runtime" bootstrap --python "$(command -v python)"
+      - name: Проверить реальный сервер и восстановление
+        shell: bash
+        run: |
+          runuser -u erp-ci -- "$RUNNER_TEMP/erp-basic-runtime/bench/env/bin/python" "инструменты/сервер/ci.py" --root "$RUNNER_TEMP/erp-basic-runtime"
+      - name: Краткий результат
+        if: always()
+        shell: bash
+        run: |
+          if [ -f "$RUNNER_TEMP/erp-basic-runtime/reports/server-ci.json" ]; then
+            cat "$RUNNER_TEMP/erp-basic-runtime/reports/server-ci.json" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "Полный серверный прогон не завершился; подробности находятся в выводе упавшего шага." >> "$GITHUB_STEP_SUMMARY"
+          fi

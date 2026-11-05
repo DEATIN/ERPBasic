@@ -1,0 +1,266 @@
+# Серверное окружение и восстановление ERP Basic
+
+Этот профиль предназначен для воспроизводимой разработки, CI и испытаний восстановления
+на **Debian 13 / Linux x86_64**. Он запускает настоящие MariaDB, Redis, Frappe/ERPNext,
+HTTP, worker и scheduler под обычным пользователем. PostgreSQL выделена отдельно для
+испытаний Clientora. Системные службы, контейнеры и базы других проектов не изменяются.
+
+Это не готовая production-инсталляция: здесь нет TLS/reverse proxy, управления несколькими
+узлами, автоматического переключения, настроенного удалённого хранилища копий и SLA.
+HTTP и БД привязаны к loopback. Полная разработческая очередь `--job-queue` принимает
+доверенные локальные команды и не должна включаться в пользовательском окружении.
+
+## Версии и решение о совместимости
+
+Точные commit, URL и SHA-256 находятся в [versions.json](versions.json). Транзитивные
+Python-зависимости закреплены в `python-runtime.lock` и `python-tools.lock`, включая
+хэши дистрибутивов; два upstream VCS-пакета закреплены commit. Yarn устанавливается через
+сохранённый npm lock, а Frappe/ERPNext — через их исходные `yarn.lock` с integrity.
+
+| Компонент | Закреплённая версия |
+|---|---|
+| Frappe | 15.126.0 |
+| ERPNext | 15.124.5 |
+| Python | 3.12.14 |
+| Node | 24.22.1 |
+| Yarn | 1.22.22 |
+| frappe-bench | 5.31.1 |
+| uv | 0.13.7 |
+| MariaDB | 10.11.19 |
+| Redis | 7.2.17 |
+| PostgreSQL для Clientora | 17.11 |
+
+[ERPNext 15.124.5](https://github.com/frappe/erpnext/blob/v15.124.5/pyproject.toml)
+требует Frappe `>=15.111.0,<16.0.0`;
+[Frappe 15.126.0](https://github.com/frappe/frappe/blob/v15.126.0/pyproject.toml)
+допускает Python `>=3.10,<3.15`. Ветка 16 требует Python 3.14; смешивание major 15/16
+не используется. [Node-ограничение Frappe](https://github.com/frappe/frappe/blob/v15.126.0/package.json)
+— `>=18`; фактическая сборка проверяется на закреплённом Node 24.
+
+Первый контрольный стенд воспроизвёл MariaDB 10.6.24 из
+[upstream CI](https://github.com/frappe/frappe/blob/v15.126.0/.github/workflows/server-tests.yml).
+Однако [Community 10.6 завершила поддержку 6 июля 2026](https://mariadb.org/about/), поэтому
+для нового профиля выбрана поддерживаемая 10.11.19. Серия 10.11 поддерживается до
+16 февраля 2028. Frappe 15 выводит предупреждение для MariaDB >=10.9; совместимость этого
+профиля проверяется нашими SQL, concurrency, HTTP и restore испытаниями, а не одним
+номером версии. [Официальный список стабильных выпусков](https://mariadb.org/mariadb/all-releases/).
+
+Redis 7.2 поддерживается до 1 декабря 2029 по
+[официальной таблице](https://redis.io/docs/latest/operate/oss_and_stack/install/version-mgmt/).
+Версия 7.2.17 закреплена по [upstream release](https://github.com/redis/redis/releases/tag/7.2.17).
+Redis используется для cache и RQ, первичные документы и durable outbox остаются в MariaDB.
+
+MariaDB запускается с `utf8mb4_unicode_ci` и **READ-COMMITTED**. Это часть контракта
+конкурентного проведения: после ожидания блокировки следующий SQL-запрос должен видеть
+последнее завершённое движение. Стартовая проверка проверяет реальную `@@tx_isolation`.
+
+## Подготовка
+
+Нужны Python и Node из таблицы, uv, git, gcc/g++, make, dpkg-deb, tar, gzip и file.
+Также нужны системные библиотеки glibc, libstdc++, libcrypt, libsystemd, libssl, Pango,
+HarfBuzz, libffi, libxml2, libxslt, libedit, libreadline и стандартные зависимости PostgreSQL.
+Список установки в отдельном Debian CI-контейнере есть в
+[сервер.yml](../.github/workflows/сервер.yml). Локальный bootstrap не использует sudo/apt.
+
+Из корня репозитория:
+
+```bash
+export ERP_RUNTIME_DIR="$PWD/../erp-runtime"
+python инструменты/сервер/окружение.py --root "$ERP_RUNTIME_DIR" bootstrap
+```
+
+Создаются собственные каталоги бинарников, данных, журналов, bench и секретов. Пакеты БД
+проверяются по SHA-256 до распаковки; исходники — по ожидаемым Git commit. Несовпадение
+останавливает установку. Повторный bootstrap не переводит существующий checkout на другую
+версию. Для смены MariaDB major используйте новый runtime и проверенное восстановление.
+
+`credentials.json` содержит случайные DB root и Administrator passwords и имеет права 0600;
+значения не выводятся. PostgreSQL имеет отдельный `postgresql-credentials.json` с отдельными
+пользователем/базой/паролем. Общего публичного административного пароля нет.
+
+Все `apps/frappe`, `apps/erpnext` и `apps/erp_basic` связаны с исходниками. Для Node-сборки
+bootstrap задаёт штатный `FRAPPE_BENCH_ROOT`; ручное изменение upstream не требуется.
+
+## Первый Site и запуск
+
+В первом терминале:
+
+```bash
+"$ERP_RUNTIME_DIR/bench/env/bin/python" инструменты/сервер/окружение.py \
+  --root "$ERP_RUNTIME_DIR" serve --services-only
+```
+
+Во втором терминале:
+
+```bash
+"$ERP_RUNTIME_DIR/bench/env/bin/python" инструменты/сервер/окружение.py \
+  --root "$ERP_RUNTIME_DIR" new-site erp-basic.localhost
+"$ERP_RUNTIME_DIR/bench/env/bin/python" инструменты/сервер/окружение.py \
+  --root "$ERP_RUNTIME_DIR" run -- bench build --production --apps frappe,erpnext,erp_basic
+```
+
+Новый Site содержит Frappe, ERPNext и ERPBasic. Никаких бухгалтерских демо-данных команда
+не загружает. `--testing` отдельно разрешает тестовые сценарии через `allow_tests`.
+При существующем Site установка отказывается стирать или переустанавливать базу.
+
+Остановите первый процесс Ctrl+C и запустите весь профиль:
+
+```bash
+"$ERP_RUNTIME_DIR/bench/env/bin/python" инструменты/сервер/окружение.py \
+  --root "$ERP_RUNTIME_DIR" serve
+```
+
+| Сервис | Адрес |
+|---|---|
+| HTTP/статика Frappe | `127.0.0.1:18000`, Host `erp-basic.localhost` |
+| MariaDB | `127.0.0.1:13306` |
+| Redis cache | `127.0.0.1:16379` |
+| Redis queue | `127.0.0.1:16380` |
+| PostgreSQL Clientora | `127.0.0.1:15432` |
+
+Порты записаны в `config/runtime.json`; их можно заранее изменить, если они заняты.
+Запуск отказывается останавливать чужой процесс на занятом порту. Каталоги `data`, `logs`
+и `run` принадлежат только этому профилю. Завершение supervisor останавливает его процессы.
+Socket.IO не запускается этим локальным профилем; упрощённый интерфейс работает через HTTP.
+
+Новый Site создаётся с отключёнными исходящими отправками, email и scheduler.
+Worker/scheduler процессы могут работать, но сама площадка не планирует jobs, пока администратор
+не включит её явно. Настройка компании и разрешений описана в основной серверной документации.
+Включение коннектора и исходящих отправок — отдельная настройка после проверки сопоставлений.
+
+### Executor с отдельным network namespace на каждый exec
+
+Для такого случая добавьте к `serve` флаг `--job-queue`. Все задания исполняются в namespace
+supervisor, без shell. Через обычную общую файловую систему атомарно создайте
+`jobs/<уникальный-id>.request.json`:
+
+```json
+{
+  "argv": ["/absolute/runtime/tools/bin/bench", "--site", "erp-basic.localhost", "migrate"],
+  "cwd": "/absolute/runtime/bench",
+  "timeout": 600
+}
+```
+
+Результат — `*.result.json` с кодом завершения, длительностью и путями stdout/stderr. Каталог
+имеет режим 0700, запросы/результаты/логи — 0600. `env` допускает строковый словарь.
+Задания выполняются последовательно; timeout завершает группу процессов задания.
+Никогда не передавайте в эту очередь пользовательский HTTP-ввод или недоверенные файлы.
+
+Для Clientora E2E без собственного DNS предусмотрен `wsgi.py` с `ERP_BASIC_TEST_SITE`:
+он фиксирует один Site аналогично `bench serve --site` на отдельном loopback listener.
+Это настройка test listener, не часть публичного integration-протокола.
+
+## Проверки
+
+Полный прогон выполняется внутри одного процесса/namespace и сам останавливает сервисы:
+
+```bash
+"$ERP_RUNTIME_DIR/bench/env/bin/python" инструменты/сервер/ci.py \
+  --root "$ERP_RUNTIME_DIR" --site ci.erp-basic.localhost
+```
+
+Для него нужен новый runtime без одновременно запущенного supervisor. Прогон создаёт
+чистый Site, собирает assets, применяет схему, выполняет штатные ERPNext бизнес-сценарии,
+гонки нескольких процессов, перенос демо, настоящий HTTP и отдельный RQ worker. Затем
+создаёт и восстанавливает полную копию. Ни SQL, ни HTTP, ни шифрование в этих проверках
+не подменяются. Reports лежат в `reports/`. Тесты Clientora с её PostgreSQL и отдельным
+Django-процессом описаны в документации интеграции; приватный код Clientora не включается
+в этот репозиторий.
+
+## Полная резервная копия
+
+Сначала остановите поступление новых операций и worker/scheduler, дождитесь текущих
+транзакций. Для локального профиля остановите полный `serve`, затем запустите
+`serve --services-only`, сохранив доступ к БД. Это реальная операционная предпосылка
+согласованного SQL и файлов; флаг `--quiesced` подтверждает, что она выполнена.
+
+```bash
+"$ERP_RUNTIME_DIR/bench/env/bin/python" инструменты/сервер/резервная-копия.py \
+  --root "$ERP_RUNTIME_DIR" backup erp-basic.localhost \
+  --output "$ERP_RUNTIME_DIR/backups" --key-dir "$ERP_RUNTIME_DIR/backup-keys" --quiesced
+```
+
+Скрипт дополнительно включает maintenance/pause_scheduler на время копии, отказывается
+работать при занятом RQ worker и сверяет документы/файлы до и после. Исходный config
+восстанавливается в `finally` после успеха или обычной ошибки. При аварийном завершении
+узла оператор проверяет maintenance mode перед открытием доступа.
+
+В комплект входят:
+
+- полный SQL dump с native MariaDB single transaction, все таблицы и дочерние строки;
+- оба каталога `public/files` и `private/files`, с именами, размерами и SHA-256;
+- app versions, Git commit и хэш фактического ERPBasic source;
+- snapshot исходников ERPBasic на случай ещё не закоммиченной разработки;
+- полные site/common config, Frappe encryption key и ключ AES — **в отдельном 0600 key file**.
+
+Данные шифруются AES-256-GCM, архив проходит проверку подлинности. Ключ не находится внутри
+архива. DB password для dump передаётся через временный 0600 client config, а не аргументы
+процесса. Временные plaintext-файлы находятся в каталоге 0700 и удаляются после операции.
+
+SQL включает всю базу. Дополнительно проверяются хэши ключевых ERPNext документов и их
+дочерних таблиц: GL/SLE/Payment Ledger, Journal Entry, операции и аудит, Version, роли и
+права, справочники, миграция, inbox/outbox. Все encrypted Password-поля фактически
+расшифровываются; в отчёт попадают только факт проверки и количество, не секреты.
+
+**Отдельный каталог на том же диске не является удалённым хранением.** Для эксплуатации
+зашифрованные bundles нужно переносить на отдельный носитель/узел с проверкой checksum,
+а key files — в отдельное ограниченное хранилище секретов. Bootstrap не придумывает адрес
+такого хранилища и не отправляет туда данные автоматически.
+
+## Восстановление и откат
+
+```bash
+"$ERP_RUNTIME_DIR/bench/env/bin/python" инструменты/сервер/резервная-копия.py \
+  --root "$ERP_RUNTIME_DIR" restore isolated-restore.localhost \
+  --backup /absolute/backups/BACKUP_ID --key-file /absolute/keys/BACKUP_ID.key.json
+```
+
+Команда принимает только новое имя Site. Создаётся новый DB user и новая база. Перед SQL
+проверяются ciphertext, ключ, архив, app versions и source digest. Код не совпадает — restore
+останавливается; произвольного downgrade схемы нет. Для отката сначала подготовьте bench
+с нужными pinned app versions и ERPBasic commit, затем восстановите согласованный комплект
+SQL/файлы/config/ключи. Исходный рабочий Site не перезаписывается.
+
+После восстановления принудительно устанавливаются `maintenance_mode=1`, `pause_scheduler=1`,
+`mute_emails=1`, `erp_basic_disable_external_calls=1`; все connector `outbound_enabled=0`.
+Redis/DB endpoints заменяются локальными адресами нового стенда. Очередь из исходного Redis
+не копируется. Administrator получает новый случайный пароль в `restore-secrets/<site>.json`.
+Перед включением рабочего обмена требуется осознанная сверка внешних операций и очереди.
+
+Фактический drill создаёт безопасного отключённого User с encrypted Password и два File,
+делает копию, восстанавливает её в новый Site/БД, проверяет данные и убирает свои probe
+записи с исходной площадки. Разрешён только при `allow_tests=1`:
+
+```bash
+"$ERP_RUNTIME_DIR/bench/env/bin/python" инструменты/сервер/проверка-восстановления.py \
+  --root "$ERP_RUNTIME_DIR" --site erp-basic.localhost
+```
+
+## Расписание, хранение и измеримые цели
+
+[backup-policy.json](backup-policy.json) задаёт предлагаемый стартовый режим: полная копия
+каждый час UTC, хранение 48 почасовых, 14 суточных и 8 недельных копий; еженедельный restore
+drill. Старые копии не удаляются автоматически: сначала проверяются новый bundle, отдельная
+копия на другом узле и доступность нужного key file. Сбой команды, несовпадение checksum,
+отсутствие своевременной копии или непрохождение restore должны давать операционное оповещение.
+Сам планировщик/канал оповещений не настроен этим dev-профилем.
+
+Целевые ориентиры — **RPO до 1 часа**, **RTO до 30 минут** после подготовки совместимого
+стенда. Это не гарантированный SLA. Отчёт drill измеряет импорт в новую базу/новый Site
+на том же MariaDB instance; полный запуск другого сервера, DNS, нагрузка, доставка ключей
+и включение интеграций в это время не включены. Объём и длительности фактического прогона
+записываются в `reports/restore.json`; проверку необходимо повторить на рабочем объёме.
+
+## Закрытый контур
+
+Для установки заранее доставьте Git checkout по закреплённым commit, архивы из versions.json,
+Python wheels/source distributions из lock-файлов, npm/Yarn offline cache и системные пакеты.
+Bootstrap проверяет локальные скачанные файлы перед использованием; первичная загрузка Git,
+Python/npm и недостающих пакетов без подготовленного зеркала требует сети. Автоматически
+полностью автономный offline installer в этом профиле не заявляется.
+
+После установки базовый учёт использует локальные HTTP, MariaDB и Redis. Clientora, email,
+телеметрия и внешние storage не нужны для проведения локальных документов. Недоступный
+Clientora не должен откатывать локальную хозяйственную операцию: durable outbox и политика
+повторов реализованы в приложении, а в восстановленном контуре отправка остаётся выключенной.
