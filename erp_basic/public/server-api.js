@@ -28,7 +28,8 @@
       const messages = typeof data._server_messages === 'string' ? JSON.parse(data._server_messages) : data._server_messages;
       if (Array.isArray(messages) && messages.length) {
         const first = typeof messages[0] === 'string' ? JSON.parse(messages[0]) : messages[0];
-        if (typeof first.message === 'string') return first.message.replace(/<[^>]*>/g, '').slice(0, 800);
+        // Диагностика остаётся текстом; HTML экранируется только при выводе в интерфейс.
+        if (typeof first.message === 'string') return first.message.slice(0, 800);
       }
     } catch (_) { /* Повреждённая диагностика не должна скрывать ошибку запроса. */ }
     return '';
@@ -37,7 +38,7 @@
   function errorFor(response, data, mutation) {
     const payloadError = data.error || (data.message && typeof data.message === 'object' ? data.message.error : null);
     const code = data.exc_type || payloadError?.code || 'REQUEST_FAILED';
-    let message = serverMessage(data) || (typeof payloadError?.message === 'string' ? payloadError.message.replace(/<[^>]*>/g, '').slice(0, 800) : '');
+    let message = serverMessage(data) || (typeof payloadError?.message === 'string' ? payloadError.message.slice(0, 800) : '');
     if (response.status === 401 || ['AuthenticationError', 'SessionExpired'].includes(code)) {
       message = 'Сессия завершилась. Войдите снова; данные учёта остаются на сервере.';
     } else if (code === 'CSRFTokenError') {

@@ -326,6 +326,89 @@ class TestHTTP(unittest.TestCase):
         frappe.db.rollback()
         self.assertEqual(frappe.db.get_value("Sales Order", draft["name"], "docstatus"), 0)
 
+    def test_docshare_не_расширяет_company_через_resource_списки_и_файлы(self):
+        from frappe.share import add, remove
+
+        company = self.env["company"]
+        name = self.env["private_order"]
+        path = self.env["private_url"]
+        file_name = frappe.db.get_value("File", {"file_url": path, "attached_to_name": name}, "name")
+        shares = [("Sales Order", name), ("Company", company), ("File", file_name)]
+        user = _USERS["other"]
+        frappe.set_user("Administrator")
+        try:
+            for doctype, document in shares:
+                add(doctype, document, user=user, read=1, notify=0)
+            frappe.db.commit()
+            other = self.client("other")
+            self.assertEqual(self.message(other.call("session"))["companies"][0]["name"], self.env["other_company"])
+            for doctype, document in shares[:2]:
+                with self.subTest(resource=doctype):
+                    response = other.request("GET", "/api/resource/" + quote(doctype, safe="") + "/" + quote(document, safe=""))
+                    self.assertEqual(response.status_code, 403, "DocShare не должен заменять членство в Company")
+            for filters in (
+                {},
+                {"filters": json.dumps({"company": company})},
+                {"filters": json.dumps([["company", "=", company]])},
+                {"or_filters": json.dumps([["name", "=", name]])},
+            ):
+                with self.subTest(filters=filters):
+                    listing = other.request("GET", "/api/resource/Sales%20Order", params={
+                        "fields": json.dumps(["name", "company"]), **filters,
+                    })
+                    self.assertEqual(listing.status_code, 200)
+                    self.assertNotIn(name, [row["name"] for row in listing.json()["data"]])
+            companies = other.request("GET", "/api/resource/Company", params={"fields": json.dumps(["name"])})
+            self.assertEqual(companies.status_code, 200)
+            self.assertNotIn(company, [row["name"] for row in companies.json()["data"]])
+            with_slash = other.request("GET", "/api/resource/Sales%20Order/", params={
+                "filters": json.dumps({"company": company}), "fields": json.dumps(["name", "company"]),
+            })
+            self.assertEqual(with_slash.status_code, 200)
+            self.assertEqual(with_slash.json()["data"], [])
+            for params in ({}, {"fid": file_name}):
+                forbidden = other.request("GET", path, params=params)
+                self.assertEqual(forbidden.status_code, 403)
+                self.assertNotIn(self.env["private_marker"], forbidden.text)
+            own_other = self.message(other.call("save_document", verb="POST", values={
+                "kind": "orders", "company": self.env["other_company"], "document": self.values(),
+                "idempotency_key": _key(),
+            }))["document"]
+            file_count = frappe.db.count("File", {"file_url": path})
+            for source in (
+                {"file_url": path},
+                {"file_url": path.replace("/private/files/", "/private/files/./")},
+                {"file_url": quote(path, safe="")},
+                {"library_file_name": file_name},
+            ):
+                with self.subTest(source=source):
+                    rebound = other.request("POST", "/api/method/upload_file", values={
+                        "doctype": "Sales Order", "docname": own_other["name"], "is_private": 1, **source,
+                    })
+                    self.assertEqual(rebound.status_code, 403,
+                                     "Чужой shared blob нельзя перепривязать к своей Company через upload")
+            frappe.db.rollback()
+            self.assertEqual(frappe.db.count("File", {"file_url": path}), file_count)
+            remove("Sales Order", name, user)
+            frappe.db.commit()
+            self.assertEqual(other.request("GET", path).status_code, 403,
+                             "Прямой share File также не заменяет доступ к Company родителя")
+            own = self.client()
+            native = own.request("GET", "/api/resource/Sales%20Order/" + quote(name, safe=""))
+            self.assertEqual(native.status_code, 200)
+            self.assertEqual(native.json()["data"]["name"], name)
+            trailing = own.request("GET", "/api/resource/Sales%20Order/" + quote(name, safe="") + "/")
+            self.assertEqual(trailing.status_code, 200)
+            self.assertEqual(trailing.json()["data"]["name"], name)
+            available = own.request("GET", path)
+            self.assertEqual(available.status_code, 200)
+            self.assertEqual(available.text, self.env["private_marker"])
+        finally:
+            frappe.set_user("Administrator")
+            for doctype, document in shares:
+                remove(doctype, document, user)
+            frappe.db.commit()
+
     def test_прямая_запись_resource_и_run_method_не_обходят_ключ_операции(self):
         client = self.client()
         draft = self.create(client)["document"]
@@ -367,6 +450,33 @@ class TestHTTP(unittest.TestCase):
         available = own.request("GET", path)
         self.assertEqual(available.status_code, 200)
         self.assertEqual(available.text, self.env["private_marker"])
+        hidden_rpc = own.request("GET", path, params={
+            "cmd": "frappe.client.get", "doctype": "Sales Order", "name": self.env["private_order"],
+        })
+        self.assertEqual(hidden_rpc.status_code, 403, "Доступный файл не должен открывать запрещённый RPC через cmd")
+        hidden_write = own.request("POST", path, values={
+            "cmd": "frappe.client.set_value", "doctype": "Sales Order", "name": self.env["private_order"],
+            "fieldname": "terms", "value": "FORBIDDEN-FILE-RPC",
+        })
+        self.assertEqual(hidden_write.status_code, 403)
+        frappe.db.rollback()
+        self.assertNotEqual(frappe.db.get_value("Sales Order", self.env["private_order"], "terms"), "FORBIDDEN-FILE-RPC")
+        delegated = own.request("POST", "/api/method/upload_file", values={
+            "doctype": "Sales Order", "docname": self.env["private_order"],
+            "method": "frappe.auth.get_logged_user", "is_private": 1,
+        })
+        self.assertEqual(delegated.status_code, 403, "Upload не должен делегировать произвольный whitelisted method")
+        service = self.client("service")
+        service_upload = service.request("POST", "/api/method/upload_file", values={
+            "doctype": "Sales Order", "docname": self.env["private_order"], "file_url": path, "is_private": 1,
+        })
+        self.assertEqual(service_upload.status_code, 403, "Служебная роль изменяет данные только через контракт обмена")
+        reused = own.request("POST", "/api/method/upload_file", values={
+            "doctype": "Sales Order", "docname": self.env["private_order"],
+            "file_url": path.replace("/private/files/", "/private/files/./"), "is_private": 1,
+        })
+        self.assertEqual(reused.status_code, 200, "Свои приватные вложения можно повторно прикреплять")
+        self.assertEqual(reused.json()["message"]["file_url"], path)
         forbidden = other.request("GET", path)
         self.assertIn(forbidden.status_code, (403, 404))
         self.assertNotIn(self.env["private_marker"], forbidden.text)

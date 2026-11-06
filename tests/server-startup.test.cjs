@@ -18,7 +18,7 @@ async function bootstrap(options = {}) {
   class Client {
     async session() { if (options.sessionError) throw options.sessionError; return { ...session, ...options.session }; }
     async recovery() { calls.push(['recovery']); if (options.recoveryError) throw options.recoveryError; return options.pending || null; }
-    async request(method, params) { calls.push([method, params]); return { rows: [], start: 0, page_length: 25, has_more: false }; }
+    async request(method, params) { calls.push([method, params]); return options.response || { rows: [], start: 0, page_length: 25, has_more: false }; }
     async command(method, params, configuration) {
       calls.push([method, params]);
       const result = { kind: 'orders', company: 'Организация А', document: { name: 'SO-CONFIRMED', modified: '2026-11-05 12:00:01', docstatus: 0, customer: 'Покупатель', items: [], grand_total: '25.00' }, permissions: permission };
@@ -33,7 +33,7 @@ async function bootstrap(options = {}) {
     addEventListener: (event, callback) => { listeners[event] = callback; },
   };
   const window = { ERPBasicAPI: { Client, ApiError }, history: { replaceState() {} }, addEventListener() {}, setTimeout: () => 0, confirm: () => true };
-  const context = vm.createContext({ document, window, location: { search: '?kind=orders' }, URLSearchParams });
+  const context = vm.createContext({ document, window, location: { search: options.search || '?kind=orders' }, URLSearchParams });
   vm.runInContext(source, context, { filename: 'server-app.js' });
   await new Promise(resolve => setImmediate(resolve));
   return { elements, calls, screen: () => elements.get('server-app').innerHTML + elements.get('server-content').innerHTML,
@@ -87,4 +87,31 @@ test('Новый документ использует бизнес-дату с�
   const ui = await bootstrap({ session: { business_date: '2001-02-03' } });
   await ui.click('new');
   assert.match(ui.screen(), /id="field-transaction_date"[^>]*value="2001-02-03"/);
+});
+
+for (const [label, search, method] of [
+  ['Список документов', '?kind=orders', 'list_documents'],
+  ['Отчёт по остаткам', '?view=stock', 'stock_balance'],
+  ['Журнал обмена', '?view=exchange', 'journal'],
+]) {
+  test(`${label} отклоняет нечисловое или недопустимое смещение до отображения строк`, async () => {
+    for (const start of ['<img src=x onerror="alert(1)">', '0', null, undefined, {}, -1, 0.5, Number.MAX_SAFE_INTEGER + 1]) {
+      const row = { name: 'UNCONFIRMED-ROW', item_code: 'UNCONFIRMED-ROW', status: 'Pending' };
+      const ui = await bootstrap({ search, session: { roles: ['ERP Basic Integration'] }, response: {
+        rows: [row], incoming: [row], outgoing: [], start, page_length: 25, has_more: true, incoming_has_more: true,
+      } });
+      assert.equal(ui.calls[1][0], method);
+      assert.match(ui.screen(), /Сервер вернул неверную пагинацию/);
+      assert.doesNotMatch(ui.screen(), /<img|UNCONFIRMED-ROW/);
+      assert.match(ui.screen(), /data-action="(?:page|stock|exchange)-next" disabled/);
+    }
+  });
+}
+
+test('Подтверждённое числовое смещение сохраняет арифметику перехода на следующую страницу', async () => {
+  const ui = await bootstrap({ response: { rows: [{ name: 'SO-26' }], start: 25, page_length: 25, has_more: true } });
+  assert.match(ui.screen(), /26–26 записей/);
+  await ui.click('page-next');
+  assert.equal(ui.calls.at(-1)[1].start, 50);
+  assert.equal(typeof ui.calls.at(-1)[1].start, 'number');
 });

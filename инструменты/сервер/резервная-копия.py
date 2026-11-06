@@ -138,26 +138,42 @@ def open_site(root, site):
 
 
 def dump_database(root, destination, temporary):
-    """Штатный mariadb-dump с паролем в 0600 config, без секрета в argv/логах."""
+    """Штатный mariadb-dump: клиентский пароль только в анонимном Linux memfd."""
     import frappe
     def quote(value):
         return '"' + str(value).replace("\\", "\\\\").replace('"', '\\"').replace("\n", "\\n") + '"'
-    credentials = temporary / "dump-client.cnf"
-    credentials.write_text("[client]\n" + "\n".join(f"{key}={quote(value)}" for key, value in {
+    client_config = "[client]\n" + "\n".join(f"{key}={quote(value)}" for key, value in {
         "user": frappe.conf.db_name, "password": frappe.conf.db_password,
         "host": frappe.conf.db_host or "127.0.0.1", "port": frappe.conf.db_port or 3306,
         "protocol": "TCP",
-    }.items()) + "\n")
-    credentials.chmod(0o600)
-    command = [str(root / "vendor/mariadb/bin/mariadb-dump"), f"--defaults-file={credentials}",
-               "--single-transaction", "--quick", "--skip-lock-tables", "--hex-blob",
-               "--routines", "--events", "--default-character-set=utf8mb4", frappe.conf.db_name]
+    }.items()) + "\n"
     error_path = temporary / "dump-error.log"
+    config_fd = None
     try:
+        if not hasattr(os, "memfd_create") or not hasattr(os, "MFD_CLOEXEC"):
+            raise RuntimeError("Для безопасного dump нужны Linux memfd_create и /proc/self/fd")
+        try:
+            config_fd = os.memfd_create("erp-basic-mariadb-client", flags=os.MFD_CLOEXEC)
+            os.fchmod(config_fd, 0o600)
+            config_path = f"/proc/self/fd/{config_fd}"
+            if not Path(config_path).is_file():
+                raise RuntimeError("Нет доступа к анонимному конфигу через /proc/self/fd")
+            remaining = memoryview(client_config.encode("utf-8"))
+            while remaining:
+                written = os.write(config_fd, remaining)
+                if written <= 0:
+                    raise RuntimeError("Не удалось записать анонимный клиентский конфиг")
+                remaining = remaining[written:]
+            os.lseek(config_fd, 0, os.SEEK_SET)
+        except OSError:
+            raise RuntimeError("Не удалось подготовить memfd; резервная копия не создаётся") from None
+        command = [str(root / "vendor/mariadb/bin/mariadb-dump"), f"--defaults-file={config_path}",
+                   "--single-transaction", "--quick", "--skip-lock-tables", "--hex-blob",
+                   "--routines", "--events", "--default-character-set=utf8mb4", frappe.conf.db_name]
         with error_path.open("wb") as error, gzip.open(destination, "wb") as compressed:
             header = f"-- begin frappe metadata\n-- [frappe]\n-- version = {frappe.__version__}\n-- branch = version-15\n-- end frappe metadata\n\n"
             compressed.write(header.encode())
-            process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=error)
+            process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=error, pass_fds=(config_fd,))
             try:
                 shutil.copyfileobj(process.stdout, compressed, 1024 * 1024)
                 if process.wait() != 0:
@@ -167,7 +183,8 @@ def dump_database(root, destination, temporary):
                     process.terminate()
                     process.wait(timeout=15)
     finally:
-        credentials.unlink(missing_ok=True)
+        if config_fd is not None:
+            os.close(config_fd)
 
 
 def encrypt(source, destination, key):

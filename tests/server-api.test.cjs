@@ -74,10 +74,24 @@ test('Отказ авторизации после потери ответа н�
 
 test('Однозначная ошибка валидации разрешает исправленный запрос с новым ключом', async () => {
   const { client, calls } = clientWith([errorResponse(417, { exc_type: 'ValidationError', _server_messages: JSON.stringify([JSON.stringify({ message: '<b>Missing warehouse</b>' })]) }), response({ saved: true })]);
-  await assert.rejects(client.command('save_document', save), error => !error.uncertain && error.message === 'Missing warehouse');
+  await assert.rejects(client.command('save_document', save), error => !error.uncertain && error.message === '<b>Missing warehouse</b>');
   assert.equal(client.pending.size, 0);
   await client.command('save_document', { ...save, document: { ...save.document, items: [{ ...save.document.items[0], warehouse: 'Main - A' }] } });
   assert.notEqual(calls[0].json.idempotency_key, calls[1].json.idempotency_key);
+});
+
+test('Диагностика передаётся ограниченным обычным текстом без попытки разбирать HTML', async () => {
+  const messages = ['<scr<script>ipt>Отклонено</scr<script>ipt>', '<img src=x onerror="alert(1)"', '<b>Ошибка</b> & "значение"', 'Ошибка '.repeat(150)];
+  for (const message of messages) {
+    for (const data of [
+      { exc_type: 'ValidationError', _server_messages: JSON.stringify([JSON.stringify({ message })]) },
+      { error: { code: 'ValidationError', message } },
+      { message: { error: { code: 'ValidationError', message } } },
+    ]) {
+      const { client } = clientWith([errorResponse(417, data)]);
+      await assert.rejects(client.request('get_document', { kind: 'orders', company: 'Organisation A', name: 'SO-1' }), error => error.message === message.slice(0, 800));
+    }
+  }
 });
 
 test('Конфликт версии отклоняет операцию и возвращается редактору', async () => {
@@ -239,7 +253,7 @@ test('Штатный logout с пустым объектом очищает не
 
 test('Ошибки обмена внутри Frappe message отклоняются, а namespace ограничен', async () => {
   const { client, calls } = clientWith([response({ accepted: false, error: { code: 'MissingMapping', message: '<b>Нужно соответствие</b>' } }, 422)]);
-  await assert.rejects(client.request('retry_inbox', { company: 'A', name: 'inbox-1' }, { namespace: 'integration', verb: 'POST', mutation: true }), error => error.code === 'MissingMapping' && error.message === 'Нужно соответствие' && !error.uncertain);
+  await assert.rejects(client.request('retry_inbox', { company: 'A', name: 'inbox-1' }, { namespace: 'integration', verb: 'POST', mutation: true }), error => error.code === 'MissingMapping' && error.message === '<b>Нужно соответствие</b>' && !error.uncertain);
   assert.equal(calls[0].url, '/api/method/erp_basic.integration.retry_inbox');
   await assert.rejects(client.request('set_mapping', {}, { namespace: 'integration' }));
   await assert.rejects(client.request('journal', {}, { namespace: '../other' }));

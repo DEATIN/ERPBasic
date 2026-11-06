@@ -1,0 +1,329 @@
+{
+  "scope": "Final local acceptance and successful GitHub acceptance including live Chromium, SQL and restore",
+  "tested_app_commit": "4ce4267dabc2db7f07b5985d7eb21efe4591b33f",
+  "pipeline": {
+    "passed": true,
+    "checks": [
+      {
+        "name": "initial_company",
+        "duration_seconds": 5.787,
+        "passed": true
+      },
+      {
+        "name": "assets",
+        "duration_seconds": 10.871,
+        "passed": true
+      },
+      {
+        "name": "schema",
+        "duration_seconds": 4.031,
+        "passed": true
+      },
+      {
+        "name": "peer_schema",
+        "duration_seconds": 4.08,
+        "passed": true
+      },
+      {
+        "name": "business",
+        "duration_seconds": 15.094,
+        "passed": true
+      },
+      {
+        "name": "concurrency",
+        "duration_seconds": 13.042,
+        "passed": true
+      },
+      {
+        "name": "integration",
+        "duration_seconds": 8.034,
+        "passed": true
+      },
+      {
+        "name": "migration",
+        "duration_seconds": 2.535,
+        "passed": true
+      },
+      {
+        "name": "http",
+        "duration_seconds": 11.18,
+        "passed": true
+      },
+      {
+        "name": "tenant_prepare",
+        "duration_seconds": 6.365,
+        "passed": true
+      },
+      {
+        "name": "tenant_http",
+        "duration_seconds": 5.283,
+        "passed": true
+      },
+      {
+        "name": "queue",
+        "duration_seconds": 1.247,
+        "passed": true
+      }
+    ],
+    "browser_requested": false,
+    "environment": {
+      "mariadb": "10.11.19-MariaDB",
+      "transaction_isolation": "READ-COMMITTED",
+      "python": "3.12.14",
+      "redis_cache": "7.2.17",
+      "redis_queue": "7.2.17",
+      "postgresql": "17.11 (Debian 17.11-0+deb13u1)"
+    },
+    "browser": {
+      "passed": false,
+      "reason": "Не запрошен --browser-tests; это не результат браузерной проверки"
+    },
+    "restore": {
+      "backup_id": "20261106T002941Z-dcec125f",
+      "site": "restore-64342b4483e05261.localhost",
+      "source_site": "final.erp-basic.localhost",
+      "duration_seconds": 6.08,
+      "database_verified": true,
+      "verified_doctypes": 91,
+      "verified_encrypted_passwords": 1,
+      "public_files": 1,
+      "private_files": 3,
+      "attachments_verified": true,
+      "external_calls_disabled": true,
+      "scheduler_disabled": true,
+      "maintenance_mode": true,
+      "isolation": "new Frappe Site and new database on the same local MariaDB instance",
+      "application_versions": {
+        "frappe": {
+          "version": "15.126.0",
+          "commit": "53bae3ef2550ca96320f036f581446783cd11b72"
+        },
+        "erpnext": {
+          "version": "15.124.5",
+          "commit": "e5cde8c4b9e3f7f567a92ca3e65fd411402b89ce"
+        },
+        "erp_basic": {
+          "version": "0.4.0.dev0",
+          "commit": "4ce4267dabc2db7f07b5985d7eb21efe4591b33f",
+          "source_sha256": "0d5f65026dee181e3b72c801af876fe8a6e65834aeeb4d1adecc2f22eac9ac1c"
+        }
+      }
+    },
+    "duration_seconds": 206.051
+  },
+  "scenario_counts": {
+    "core": 9,
+    "concurrency": 4,
+    "integration": 12,
+    "migration": 5,
+    "http": 8,
+    "tenant_http": 3
+  },
+  "backup": {
+    "bytes": 956827,
+    "duration_seconds": 1.531,
+    "ciphertext_sha256": "b248d18c7bf8c4a57cd0a2c0b1b07eba7ccbe2167750de00563212d8a63e8d62"
+  },
+  "site_secrets": {
+    "different_administrator_passwords": true,
+    "credential_file_mode": "0600",
+    "different_databases": true,
+    "temporary_test_credentials_removed": true
+  },
+  "notes": [
+    "Both acceptance Sites were newly installed; existing MariaDB, Redis and PostgreSQL services continued running in the same isolated runtime.",
+    "The source application commit and content digest were verified during backup and restore.",
+    "Restore time measures a new Site and database on the same MariaDB instance, not full machine disaster recovery.",
+    "Local Chromium execution is restricted in this executor. browser_requested=false is not a browser test pass."
+  ],
+  "github_ci": {
+    "head_commit": "4ce4267dabc2db7f07b5985d7eb21efe4591b33f",
+    "run_url": "https://github.com/DEATIN/ERPBasic/actions/runs/42137183949",
+    "job_id": 127628205196,
+    "conclusion": "success",
+    "checkout_kind": "GitHub pull request merge ref; application source hash equals the locally tested head",
+    "artifact_url": "https://github.com/DEATIN/ERPBasic/actions/runs/42137183949/artifacts/13465828016",
+    "artifact_sha256": "6153c02fa413e31a718f281a96763ce6c8e84d936a73b072ccb699bc9c9241b9",
+    "pipeline": {
+      "passed": true,
+      "checks": [
+        {
+          "name": "initial_company",
+          "duration_seconds": 4.746,
+          "passed": true
+        },
+        {
+          "name": "assets",
+          "duration_seconds": 13.691,
+          "passed": true
+        },
+        {
+          "name": "schema",
+          "duration_seconds": 3.812,
+          "passed": true
+        },
+        {
+          "name": "peer_schema",
+          "duration_seconds": 3.81,
+          "passed": true
+        },
+        {
+          "name": "business",
+          "duration_seconds": 12.005,
+          "passed": true
+        },
+        {
+          "name": "concurrency",
+          "duration_seconds": 12.757,
+          "passed": true
+        },
+        {
+          "name": "integration",
+          "duration_seconds": 6.848,
+          "passed": true
+        },
+        {
+          "name": "migration",
+          "duration_seconds": 2.392,
+          "passed": true
+        },
+        {
+          "name": "http",
+          "duration_seconds": 8.831,
+          "passed": true
+        },
+        {
+          "name": "tenant_prepare",
+          "duration_seconds": 4.875,
+          "passed": true
+        },
+        {
+          "name": "tenant_http",
+          "duration_seconds": 4.189,
+          "passed": true
+        },
+        {
+          "name": "browser_prepare",
+          "duration_seconds": 1.464,
+          "passed": true
+        },
+        {
+          "name": "browser_ui",
+          "duration_seconds": 3.482,
+          "passed": true
+        },
+        {
+          "name": "browser_database",
+          "duration_seconds": 1.283,
+          "passed": true
+        },
+        {
+          "name": "queue",
+          "duration_seconds": 1.908,
+          "passed": true
+        }
+      ],
+      "browser_requested": true,
+      "environment": {
+        "mariadb": "10.11.19-MariaDB",
+        "transaction_isolation": "READ-COMMITTED",
+        "python": "3.12.14",
+        "redis_cache": "7.2.17",
+        "redis_queue": "7.2.17",
+        "postgresql": "17.11 (Debian 17.11-0+deb13u1)"
+      },
+      "browser": {
+        "site": "ci.erp-basic.localhost",
+        "company": "ERP Basic Test",
+        "name": "SAL-ORD-2026-00009",
+        "kind": "orders",
+        "docstatus": 1,
+        "grand_total": "251.00",
+        "browser": "Chromium",
+        "transport": "настоящий HTTP",
+        "mocks": false,
+        "reloaded": true,
+        "relogged": true
+      },
+      "restore": {
+        "backup_id": "20261106T003509Z-9651f4bd",
+        "site": "restore-f075f87afe49f378.localhost",
+        "source_site": "ci.erp-basic.localhost",
+        "duration_seconds": 5.0,
+        "database_verified": true,
+        "verified_doctypes": 91,
+        "verified_encrypted_passwords": 1,
+        "public_files": 1,
+        "private_files": 3,
+        "attachments_verified": true,
+        "external_calls_disabled": true,
+        "scheduler_disabled": true,
+        "maintenance_mode": true,
+        "isolation": "new Frappe Site and new database on the same local MariaDB instance",
+        "application_versions": {
+          "frappe": {
+            "version": "15.126.0",
+            "commit": "53bae3ef2550ca96320f036f581446783cd11b72"
+          },
+          "erpnext": {
+            "version": "15.124.5",
+            "commit": "e5cde8c4b9e3f7f567a92ca3e65fd411402b89ce"
+          },
+          "erp_basic": {
+            "version": "0.4.0.dev0",
+            "commit": "b8a6a15a8fd438ad7b74e62b13327426320b22b0",
+            "source_sha256": "0d5f65026dee181e3b72c801af876fe8a6e65834aeeb4d1adecc2f22eac9ac1c"
+          }
+        }
+      },
+      "duration_seconds": 183.803
+    },
+    "backup": {
+      "bytes": 956142,
+      "duration_seconds": 1.355,
+      "ciphertext_sha256": "9210a1f32e24ffbd7b63fb4d1fe67876b8635ea14cd8dcae49848cacade2d1dd"
+    }
+  },
+  "post_acceptance_security_validation": {
+    "application_source_sha256": "83d986ce16980f31d814b2fe689cec78c30f569060dec10c0fa0f2c29bcc94ab",
+    "scope": "Security corrections after the baseline acceptance at 4ce4267; current GitHub head checks remain authoritative",
+    "node": {
+      "tests": 43,
+      "passed": true,
+      "original_demo_tests": 7
+    },
+    "http": {
+      "tests": 9,
+      "failures": 0,
+      "errors": 0,
+      "transport": "настоящий HTTP",
+      "mocks": false,
+      "duration_seconds": 10.49,
+      "process_duration_seconds": 12.247,
+      "company_docshare_enforced": true,
+      "file_rebinding_denied": true,
+      "file_cmd_rpc_denied": true,
+      "upload_method_delegation_denied": true,
+      "own_file_reuse_allowed": true
+    },
+    "backup_restore_memfd": {
+      "passed": true,
+      "process_duration_seconds": 8.292,
+      "restore_duration_seconds": 5.759,
+      "verified_doctypes": 91,
+      "verified_encrypted_passwords": 1,
+      "public_files": 1,
+      "private_files": 3,
+      "external_calls_disabled": true,
+      "memfd_failure_cases": [
+        "memfd_unavailable",
+        "memory_write_failed"
+      ],
+      "failure_creates_password_file": false,
+      "failure_starts_dump": false,
+      "descriptor_closed_on_failure": true
+    },
+    "browser_contract_tests": 11,
+    "github_ci": "Pending validation of the next published commit; baseline results above are not substituted"
+  }
+}

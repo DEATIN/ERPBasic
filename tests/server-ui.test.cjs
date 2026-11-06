@@ -298,9 +298,11 @@ test('Интерфейс: журнал обмена подтверждает о�
 
 test('Интерфейс: серверные сообщения и поля документа не исполняют HTML', async () => {
   const malicious = '\"><svg onload="window.__document_xss=1">';
+  const messages = ['<img src=x onerror="window.__error_xss=1">Отклонено сервером', '<scr<script>ipt>window.__error_xss=1</scr<script>ipt>', '<img src=x onerror="window.__error_xss=1"'];
+  let attempt = 0;
   const { page, errors } = await pageFixture(async (route, method) => {
     if (method === 'get_document') { await fulfill(route, envelope('orders', { ...order, customer: malicious, status: malicious })); return true; }
-    if (method === 'save_document') { await route.fulfill({ status: 417, contentType: 'application/json', body: JSON.stringify({ exc_type: 'ValidationError', _server_messages: JSON.stringify([JSON.stringify({ message: '<img src=x onerror="window.__error_xss=1">Отклонено сервером' })]) }) }); return true; }
+    if (method === 'save_document') { await route.fulfill({ status: 417, contentType: 'application/json', body: JSON.stringify({ exc_type: 'ValidationError', _server_messages: JSON.stringify([JSON.stringify({ message: messages[attempt++] })]) }) }); return true; }
     return false;
   });
   try {
@@ -308,12 +310,38 @@ test('Интерфейс: серверные сообщения и поля до
     assert.equal(await page.locator('#field-customer').inputValue(), malicious);
     assert.equal(await page.locator('[onload],[onerror]').count(), 0);
     await page.locator('#field-customer').fill('CUSTOMER-A');
-    await page.getByRole('button', { name: 'Сохранить', exact: true }).click();
-    await page.getByText('Отклонено сервером', { exact: true }).waitFor();
-    assert.equal(await page.locator('img').count(), 0);
-    assert.equal(await page.evaluate(() => window.__document_xss || window.__error_xss), undefined);
+    for (const message of messages) {
+      await page.getByRole('button', { name: 'Сохранить', exact: true }).click();
+      await page.getByText(message, { exact: true }).waitFor();
+      assert.equal(await page.locator('.server-error p').textContent(), message);
+      assert.equal(await page.locator('img,[onload],[onerror]').count(), 0);
+      assert.equal(await page.evaluate(() => window.__document_xss || window.__error_xss), undefined);
+    }
     assert.equal(await page.getByText('Документ сохранён на сервере.', { exact: true }).count(), 0);
     assert.equal(await page.evaluate(() => sessionStorage.getItem('erp-basic:pending-command:v1')), null);
+    assert.deepEqual(errors, []);
+  } finally { await page.close(); }
+});
+
+test('Интерфейс: HTML вместо числового смещения не попадает в список, остатки или журнал', async () => {
+  const malicious = '<img src=x onerror="window.__pagination_xss=1">';
+  const row = { ...order, name: 'UNCONFIRMED-ROW', item_code: 'UNCONFIRMED-ROW', status: 'Pending' };
+  const { page, errors } = await pageFixture(async (route, method) => {
+    if (method === 'session') { await fulfill(route, { ...session, roles: ['ERP Basic Integration'] }); return true; }
+    if (['list_documents', 'stock_balance', 'journal'].includes(method)) {
+      await fulfill(route, { rows: [row], incoming: [row], outgoing: [], start: malicious, page_length: 25, has_more: true, incoming_has_more: true }); return true;
+    }
+    return false;
+  });
+  try {
+    for (const query of ['kind=orders', 'view=stock', 'view=exchange']) {
+      await page.goto(`${origin}/erp?${query}`);
+      await page.getByText('Сервер вернул неверную пагинацию.', { exact: true }).waitFor();
+      assert.equal(await page.locator('img,[onload],[onerror]').count(), 0);
+      assert.equal(await page.evaluate(() => window.__pagination_xss), undefined);
+      assert.equal(await page.getByText('UNCONFIRMED-ROW', { exact: true }).count(), 0);
+      assert.equal(await page.getByRole('button', { name: 'Далее', exact: true }).isDisabled(), true);
+    }
     assert.deepEqual(errors, []);
   } finally { await page.close(); }
 });
