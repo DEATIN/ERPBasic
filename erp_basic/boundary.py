@@ -19,7 +19,8 @@ def check_request():
     request = getattr(frappe.local, "request", None)
     if not request or access.is_administrator():
         return
-    if frappe.conf.get("erp_basic_full_erpnext"):
+    integration_user = "ERP Basic Integration" in frappe.get_roles()
+    if frappe.conf.get("erp_basic_full_erpnext") and not integration_user:
         # Включается оператором Site при переходе к полному ERPNext после проверки его ролей.
         return
     path = unquote(request.path)
@@ -31,6 +32,8 @@ def check_request():
             return
         access.require_user()
         if method.startswith("erp_basic."):
+            if integration_user and request.method != "GET" and not method.startswith("erp_basic.integration."):
+                frappe.throw("Служебный пользователь изменяет данные только через контракт обмена.", frappe.PermissionError)
             return
         if method == "upload_file":
             if not access.allowed_companies():

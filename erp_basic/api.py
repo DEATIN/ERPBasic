@@ -166,7 +166,7 @@ def export_page(kind, company, start=0, page_length=100, search=""):
     for row in page["rows"]:
         values = []
         for field in columns:
-            value = str(row.get(field) or "")
+            value = "" if row.get(field) is None else str(row[field])
             if value.startswith(("=", "+", "-", "@", "\t", "\r")):
                 value = "'" + value
             values.append(value)

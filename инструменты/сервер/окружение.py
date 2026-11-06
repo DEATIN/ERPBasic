@@ -185,8 +185,7 @@ b=Bench(sys.argv[1]);b.setup.dirs();b.setup.logging();b.setup.patches()
     write_json(common, values)
     credentials = root / "credentials.json"
     if not credentials.exists():
-        write_json(credentials, {"db_root_password": secrets.token_hex(24),
-                                 "admin_password": secrets.token_urlsafe(32)})
+        write_json(credentials, {"db_root_password": secrets.token_hex(24)})
     credentials.chmod(0o600)
     print(f"Зависимости готовы. Секреты: {credentials} (0600); значения не выводятся.")
 
@@ -329,8 +328,19 @@ maxmemory-policy {'noeviction' if name == 'queue' else 'allkeys-lru'}
         self.wait_for(self.ports["postgresql"])
         import psycopg2
         from psycopg2 import sql
-        connection = psycopg2.connect(host="127.0.0.1", port=self.ports["postgresql"], dbname="postgres",
-                                      user=secrets_value["admin_user"], password=secrets_value["admin_password"])
+        deadline = time.monotonic() + 60
+        while True:
+            self.check()
+            try:
+                connection = psycopg2.connect(host="127.0.0.1", port=self.ports["postgresql"], dbname="postgres",
+                                              user=secrets_value["admin_user"], password=secrets_value["admin_password"],
+                                              connect_timeout=5)
+                break
+            except psycopg2.OperationalError:
+                # TCP начинает принимать соединения до завершения WAL recovery.
+                if time.monotonic() >= deadline:
+                    raise RuntimeError("PostgreSQL не готов к SQL после 60 секунд; см. logs/postgresql.log") from None
+                time.sleep(0.2)
         connection.autocommit = True
         with connection.cursor() as cursor:
             cursor.execute("SELECT 1 FROM pg_roles WHERE rolname=%s", (secrets_value["user"],))
@@ -412,10 +422,17 @@ def create_site(root, site, *, testing=False, basic=True):
     import frappe
     from frappe.installer import _new_site
     credentials = json.loads((root / "credentials.json").read_text())
+    site_credentials = root / "site-credentials" / f"{site}.json"
+    site_credentials.parent.mkdir(exist_ok=True)
+    site_credentials.parent.chmod(0o700)
+    if site_credentials.exists():
+        raise RuntimeError("Секреты для Site уже существуют; проверьте предыдущую установку")
+    admin_password = secrets.token_urlsafe(32)
+    write_json(site_credentials, {"site": site, "user": "Administrator", "password": admin_password})
     config = runtime_config(root)
     frappe.init(site=site, new_site=True)
     _new_site(None, site, db_root_username="root", db_root_password=credentials["db_root_password"],
-              admin_password=credentials["admin_password"], db_type="mariadb", db_host="127.0.0.1",
+              admin_password=admin_password, db_type="mariadb", db_host="127.0.0.1",
               db_port=config["ports"]["mariadb"], mariadb_user_host_login_scope="127.0.0.1",
               install_apps=["erpnext", "erp_basic"] if basic else ["erpnext"])
     path = sites / site / "site_config.json"
@@ -428,7 +445,7 @@ def create_site(root, site, *, testing=False, basic=True):
     values.setdefault("default_site", site)
     write_json(common, values)
     frappe.destroy()
-    print(f"Site {site} установлен; исходящие отправки и scheduler выключены.")
+    print(f"Site {site} установлен; исходящие отправки и scheduler выключены. Отдельный пароль: {site_credentials} (0600).")
 
 
 def perform_job(root, request, env):

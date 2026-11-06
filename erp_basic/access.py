@@ -43,10 +43,13 @@ def require_administrator():
         frappe.throw("Операция доступна администратору этого контура.", frappe.PermissionError)
 
 
-def document_permission(doc, user=None, permission_type=None, **kwargs):
+def document_permission(doc, user=None, ptype=None, permission_type=None, **kwargs):
     user = user or frappe.session.user
     if is_administrator(user):
         return None
+    if (ptype or permission_type) in {"submit", "cancel"} and "ERP Basic Integration" in frappe.get_roles(user):
+        # CRM передаёт предложение; хозяйственный факт подтверждает отдельный сотрудник ERP.
+        return False
     company = doc.name if doc.doctype == "Company" else doc.get("company")
     if doc.doctype == "ERP Basic Audit Event" and not company:
         return None if allowed_companies(user) else False

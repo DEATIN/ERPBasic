@@ -25,6 +25,12 @@ def after_install():
 
 
 def after_migrate():
+    # Ответ CRM содержит состояние native счетов и оплат, но сервис не получает право их записи.
+    if frappe.db.exists("Role", "ERP Basic Integration"):
+        from frappe.permissions import add_permission
+        for doctype in ("Sales Invoice", "Payment Entry"):
+            if not frappe.db.exists("Custom DocPerm", {"parent": doctype, "role": "ERP Basic Integration"}):
+                add_permission(doctype, "ERP Basic Integration", ptype="read")
     if frappe.db.table_exists("ERP Basic Operation"):
         frappe.db.add_index("ERP Basic Operation", ["company", "creation"], "erp_basic_operation_company")
     if frappe.db.table_exists("ERP Basic Audit Event"):

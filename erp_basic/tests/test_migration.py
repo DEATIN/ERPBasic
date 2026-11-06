@@ -37,6 +37,15 @@ def run():
     invalid = deepcopy(source)
     invalid["orders"][0]["lines"][0]["item"] = "UNKNOWN"
     assert not migration.plan(invalid, **args)["valid"]
+    for financial_shape in (["invalid"], {"reviewed": True, "currency": "RUB", "entries": None},
+                            {"reviewed": True, "currency": "RUB", "entries": [None]},
+                            {"reviewed": True, "currency": "RUB", "entries": [
+                                {"kind": "bank", "amount": "100", "account": "UNKNOWN"}]}):
+        malformed = migration.plan(source, **{**args, "financial": financial_shape})
+        assert not malformed["valid"] and malformed["errors"], "Dry run возвращает отчёт, а не ошибку Python"
+    assert len(migration._native_name("LB-test-", "items", "x" * 140)) <= 140
+    assert migration._native_name("LB-test-", "items", "товар/1") != migration._native_name("LB-test-", "items", "товар/2")
+    assert migration._native_name("LB-test-", "items", "ABC").lower() != migration._native_name("LB-test-", "items", "abc").lower()
     result = migration.apply(source, **args, plan_hash=report["run_id"], accept_warnings=1)
     counts = {doctype: frappe.db.count(doctype) for doctype in
               ("ERP Basic Migration Mapping", "Stock Ledger Entry", "GL Entry", "Item", "Customer", "Sales Order")}

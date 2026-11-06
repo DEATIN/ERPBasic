@@ -123,6 +123,12 @@ class TestCore(unittest.TestCase):
         with self.assertRaises(frappe.PermissionError):
             self.submit(order)
         frappe.set_user("Administrator")
+        service = fixtures.make_user("restricted.exchange@example.invalid",
+                                     ["ERP Basic Integration", "Sales User"], [self.company])
+        frappe.set_user(service)
+        with self.assertRaises(frappe.PermissionError):
+            self.submit(order)
+        frappe.set_user("Administrator")
         with self.assertRaises(frappe.PermissionError):
             commands.save_document("orders", self.company,
                                    {"company": self.env["other_company"], "customer": self.env["customer"]}, idempotency_key=key())

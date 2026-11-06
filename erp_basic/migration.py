@@ -135,9 +135,13 @@ def plan(payload, company, warehouse, source_id, cutoff_date, uom_mapping=None, 
     if financial is not None:
         if not isinstance(financial, dict) or financial.get("currency") != currency or financial.get("reviewed") is not True:
             errors.append({"path": "financial", "reason": "Нужен проверенный финансовый срез в валюте компании"})
+        elif not isinstance(financial.get("entries"), list) or len(financial["entries"]) > 5000:
+            errors.append({"path": "financial.entries", "reason": "Ожидается массив до 5000 начальных балансов"})
         else:
-            for index, entry in enumerate(financial.get("entries", [])):
+            for index, entry in enumerate(financial["entries"]):
                 try:
+                    if not isinstance(entry, dict):
+                        raise ValueError("Начальный баланс должен быть объектом JSON")
                     kind = entry["kind"]
                     if kind not in ("receivable", "payable", "customer_advance", "supplier_advance", "cash", "bank"):
                         raise ValueError("Неизвестный вид начального баланса")
@@ -147,10 +151,16 @@ def plan(payload, company, warehouse, source_id, cutoff_date, uom_mapping=None, 
                         party_kind = "suppliers" if kind in ("payable", "supplier_advance") else "customers"
                         if entry.get("party_id") not in indexes[party_kind]:
                             raise ValueError("Не найден контрагент финансового среза")
-                    elif entry.get("account"):
-                        account = frappe.get_doc("Account", entry["account"])
-                        if account.company != company or account.is_group or account.account_type not in ("Cash", "Bank"):
-                            raise ValueError("Нужен денежный счёт этой компании")
+                    else:
+                        default = "default_cash_account" if kind == "cash" else "default_bank_account"
+                        name = entry.get("account") or frappe.db.get_value("Company", company, default)
+                        account = frappe.db.get_value("Account", name,
+                            ["company", "is_group", "account_type", "account_currency"], as_dict=True) if name else None
+                        expected_type = "Cash" if kind == "cash" else "Bank"
+                        if not account or account.company != company or account.is_group or account.account_type != expected_type:
+                            raise ValueError("Нужен существующий денежный счёт выбранного типа и компании")
+                        if account.account_currency != currency:
+                            raise ValueError("Начальный срез поддерживает денежные счета только в валюте компании")
                 except (ValueError, KeyError, TypeError) as error:
                     errors.append({"path": f"financial.entries[{index}]", "reason": str(error)})
     else:
@@ -168,12 +178,18 @@ def plan(payload, company, warehouse, source_id, cutoff_date, uom_mapping=None, 
             "cutoff_date": cutoff_date, "currency": currency, "errors": errors, "warnings": warnings,
             "counts": {section: len(indexes[section]) for section in SECTIONS},
             "expected": {key: str(value) for key, value in totals.items()},
-            "financial_reviewed": bool(financial and financial.get("reviewed")),
+            "financial_reviewed": isinstance(financial, dict) and financial.get("reviewed") is True,
             "uom_mapping": uom_mapping}
 
 
 def _mapping_name(company, source_id, section, old_id):
     return _digest([company, source_id, section, old_id])
+
+
+def _native_name(prefix, section, old_id):
+    # Исходный ID сохраняется в mapping. Хэш избегает ограничения 140 знаков,
+    # запрещённых символов и коллизий ID, различающихся только регистром в MariaDB.
+    return prefix + _digest([section, old_id])
 
 
 def _archive(report, section, row, native=None):
@@ -231,7 +247,7 @@ def apply(payload, company, warehouse, source_id, cutoff_date, plan_hash, accept
                 values.update(customer_type="Company", customer_group=group, territory=get_root_of("Territory"))
             else:
                 values.update(supplier_type="Company", supplier_group=group)
-            doc = frappe.get_doc(values).insert(set_name=prefix + row["id"])
+            doc = frappe.get_doc(values).insert(set_name=_native_name(prefix, section, row["id"]))
             maps[section][row["id"]] = doc.name
             all_mappings.append(_archive(report, section, row, doc))
             _contact_and_address(doc, row)
@@ -242,7 +258,7 @@ def apply(payload, company, warehouse, source_id, cutoff_date, plan_hash, accept
     maps["items"] = {}
     stock_rows = []
     for row in payload["items"]:
-        doc = frappe.get_doc({"doctype": "Item", "item_code": prefix + row["id"], "item_name": row["name"],
+        doc = frappe.get_doc({"doctype": "Item", "item_code": _native_name(prefix, "items", row["id"]), "item_name": row["name"],
                               "item_group": group, "stock_uom": report["uom_mapping"][row["unit"]],
                               "is_stock_item": int(row["type"] == "Товар"), "is_sales_item": 1, "is_purchase_item": 1,
                               "valuation_method": "Moving Average"}).insert()
@@ -302,7 +318,7 @@ def _contact_and_address(parent, row):
 def _draft(report, section, source, maps, price_list):
     values = {"doctype": DOCUMENTS[section], "company": report["company"], "currency": report["currency"],
               "conversion_rate": 1, "transaction_date": source.get("date") or report["cutoff_date"],
-              "remarks": f"Начальный перенос {report['source_id']}; исходный документ {source['id']}",
+              "terms": f"Начальный перенос {report['source_id']}; исходный документ {source['id']}",
               "additional_discount_percentage": float(_number(source.get("discount", 0))), "apply_discount_on": "Net Total"}
     if section == "purchaseOrders":
         values.update(supplier=maps["suppliers"][source["partner"]], schedule_date=source.get("delivery") or report["cutoff_date"])

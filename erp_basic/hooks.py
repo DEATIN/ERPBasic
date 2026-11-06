@@ -34,7 +34,7 @@ permission_query_conditions.update({name: "erp_basic.access.shared_query" for na
 _business_documents = [
     "Quotation", "Sales Order", "Delivery Note", "Sales Invoice", "Purchase Order", "Purchase Receipt",
     "Purchase Invoice", "Payment Entry", "Stock Entry", "Stock Reconciliation", "Item", "Customer", "Supplier",
-    "Journal Entry",
+    "Journal Entry", "Warehouse",
 ]
 doc_events = {
     name: {
@@ -42,7 +42,7 @@ doc_events = {
         "before_submit": "erp_basic.guards.before_submit",
         "before_cancel": "erp_basic.guards.before_cancel",
         **{event: ["erp_basic.audit.record_event", "erp_basic.integration.document_event"]
-           for event in ("after_insert", "on_update", "on_submit", "on_cancel")},
+           for event in ("after_insert", "on_update", "on_submit", "on_cancel", "on_update_after_submit")},
     } for name in _business_documents
 }
 doc_events["File"] = {"validate": "erp_basic.boundary.protect_attachment"}

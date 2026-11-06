@@ -8,6 +8,7 @@ FIELDS = (
     "name", "company", "docstatus", "status", "customer", "supplier", "party", "posting_date",
     "transaction_date", "grand_total", "outstanding_amount", "paid_amount", "received_amount", "purpose",
     "item_code", "item_name", "stock_uom", "is_stock_item", "disabled", "customer_name", "supplier_name",
+    "warehouse_name", "parent_warehouse", "is_group", "account",
 )
 ROW_FIELDS = ("item_code", "qty", "rate", "amount", "warehouse", "s_warehouse", "t_warehouse",
               "valuation_rate", "basic_rate")

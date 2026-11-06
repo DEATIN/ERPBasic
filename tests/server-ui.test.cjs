@@ -8,7 +8,12 @@ const fs = require('node:fs/promises');
 const { chromium } = require('playwright');
 const root = path.resolve(__dirname, '..');
 const screenshots = process.env.ERP_BASIC_SCREENSHOTS;
-async function capture(page, filename) { if (screenshots) { await fs.mkdir(screenshots, { recursive: true }); await page.screenshot({ path: path.join(screenshots, filename), fullPage: true }); } }
+async function capture(page, filename) { if (screenshots) { await fs.mkdir(screenshots, { recursive: true }); await page.screenshot({ path: path.join(screenshots, filename), fullPage: true, animations: 'disabled' }); } }
+async function mobileReady(page) {
+  await page.waitForFunction(() => document.querySelector('.sidebar').getBoundingClientRect().right <= document.querySelector('.rail').getBoundingClientRect().right + 1);
+  assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), true, 'Узкий экран должен прокручивать таблицу, а не всю страницу');
+  assert.equal(await page.getByRole('button', { name: 'Открыть разделы', exact: true }).isVisible(), true);
+}
 let browser, server, origin;
 const capability = { read: true, create: true, write: true, submit: true, cancel: true };
 const kinds = ['quotes', 'orders', 'deliveries', 'invoices', 'purchaseOrders', 'receipts', 'purchaseInvoices', 'stockDocs', 'inventory', 'payments', 'items', 'customers', 'suppliers', 'warehouses'];
@@ -141,7 +146,13 @@ test('Интерфейс: смена организации исключает �
     assert.equal(await page.getByText('OLD-A', { exact: true }).count(), 0);
     assert.equal(listQueries.at(-1).start, '25'); assert.equal(listQueries.at(-1).page_length, '25');
     await page.setViewportSize({ width: 390, height: 844 });
+    await mobileReady(page);
     await capture(page, 'server-ui-mobile.png');
+    await page.getByRole('button', { name: 'Открыть разделы', exact: true }).click();
+    assert.equal(await page.getByRole('button', { name: 'Открыть разделы', exact: true }).getAttribute('aria-expanded'), 'true');
+    await page.getByRole('button', { name: 'Закрыть разделы', exact: true }).click({ position: { x: 370, y: 100 } });
+    await mobileReady(page);
+    assert.equal(await page.getByRole('button', { name: 'Открыть разделы', exact: true }).getAttribute('aria-expanded'), 'false');
     assert.deepEqual(errors, []);
   } finally { finishOld(); await page.close(); }
 });
@@ -249,6 +260,7 @@ test('Интерфейс: журнал обмена подтверждает о�
     await page.getByRole('button', { name: 'Сменить тему', exact: true }).click();
     await capture(page, 'exchange-desktop-dark.png');
     await page.setViewportSize({ width: 390, height: 844 });
+    await mobileReady(page);
     await capture(page, 'exchange-mobile-dark.png');
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), true);
     assert.deepEqual(errors, []);

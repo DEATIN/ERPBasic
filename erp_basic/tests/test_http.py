@@ -28,6 +28,7 @@ _USERS = {
     "observer": "observer.erp-basic@example.invalid",
     "other": "other.erp-basic@example.invalid",
     "unscoped": "unscoped.erp-basic@example.invalid",
+    "service": "service.http.erp-basic@example.invalid",
 }
 
 
@@ -38,6 +39,7 @@ def _key():
 def _prepare(credentials_path):
     env = fixtures.setup()
     frappe.set_user("Administrator")
+    fixtures.make_user(_USERS["service"], ["Sales User", "ERP Basic Integration"], [env["company"]])
     credentials = {}
     for role, email in _USERS.items():
         password = secrets.token_urlsafe(32)
@@ -275,7 +277,22 @@ class TestHTTP(unittest.TestCase):
         self.assertEqual(run.status_code, 403)
         delete = client.request("DELETE", resource)
         self.assertEqual(delete.status_code, 403)
+        service = self.client("service")
+        before_count = frappe.db.count("Sales Order", {"company": self.env["company"]})
+        for method, arguments in (
+            ("save_document", {"kind": "orders", "company": self.env["company"], "document": self.values(),
+                               "idempotency_key": _key()}),
+            ("save_document", {"kind": "orders", "company": self.env["company"],
+                               "document": {"name": draft["name"], "delivery_date": "2099-12-31"},
+                               "expected_modified": draft["modified"], "idempotency_key": _key()}),
+            ("submit_document", {"kind": "orders", "company": self.env["company"], "name": draft["name"],
+                                 "expected_modified": draft["modified"], "idempotency_key": _key()}),
+        ):
+            with self.subTest(service_method=method):
+                denied = service.call(method, verb="POST", values=arguments)
+                self.assertEqual(denied.status_code, 403, "Служебная роль не должна обходить inbox через API сотрудника")
         frappe.db.rollback()
+        self.assertEqual(frappe.db.count("Sales Order", {"company": self.env["company"]}), before_count)
         self.assertTrue(frappe.db.exists("Sales Order", draft["name"]))
         self.assertEqual(frappe.db.get_value("Sales Order", draft["name"], "docstatus"), 0)
         self.assertNotEqual(str(frappe.db.get_value("Sales Order", draft["name"], "delivery_date")), "2099-12-31")
