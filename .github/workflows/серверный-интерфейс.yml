@@ -18,9 +18,6 @@ jobs:
     name: Контракт интерфейса в Chromium
     runs-on: ubuntu-24.04
     timeout-minutes: 15
-    env:
-      NODE_PATH: ${{ runner.temp }}/erp-basic-browser/node_modules
-      ERP_BASIC_SCREENSHOTS: ${{ runner.temp }}/erp-basic-server-ui/screenshots
     steps:
       - name: Получить исходники
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
@@ -41,6 +38,9 @@ jobs:
       - name: Проверить транспорт, запуск и восстановление запросов
         run: node --test --test-reporter=spec --test-reporter-destination=stdout --test-reporter=junit --test-reporter-destination="$RUNNER_TEMP/erp-basic-server-ui/transport.xml" tests/server-api.test.cjs tests/server-startup.test.cjs
       - name: Проверить интерфейс на явных HTTP-фикстурах
+        env:
+          NODE_PATH: ${{ runner.temp }}/erp-basic-browser/node_modules
+          ERP_BASIC_SCREENSHOTS: ${{ runner.temp }}/erp-basic-server-ui/screenshots
         run: node --test --test-reporter=spec --test-reporter-destination=stdout --test-reporter=junit --test-reporter-destination="$RUNNER_TEMP/erp-basic-server-ui/browser.xml" tests/server-ui.test.cjs
       - name: Сохранить отчёты и снимки обеих тем
         if: always()
