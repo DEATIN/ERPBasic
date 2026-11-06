@@ -1,0 +1,9 @@
+{
+  "name": "erp-basic-live-browser-tests",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Закреплённый Chromium runner для настоящих UI → HTTP → ERPNext проверок",
+  "dependencies": {
+    "playwright": "1.62.1"
+  }
+}

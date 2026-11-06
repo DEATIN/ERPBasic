@@ -1,0 +1,2 @@
+// Применяем сохранённую тему до первого отображения страницы.
+(function(){var theme='light';try{var saved=localStorage.getItem('erpbasic-theme');theme=saved==='light'||saved==='dark'?saved:(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light')}catch(e){}document.documentElement.dataset.theme=theme;var meta=document.querySelector('meta[name="theme-color"]');if(meta)meta.content=theme==='dark'?'#191d23':'#f8f8f8'})();

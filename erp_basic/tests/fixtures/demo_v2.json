@@ -1,0 +1,640 @@
+{
+  "schema": 2,
+  "company": "Студия «Форма»",
+  "profile": "Услуги",
+  "items": [
+    {
+      "id": "MAT-001",
+      "name": "Масло техническое, 1 л",
+      "type": "Товар",
+      "unit": "шт.",
+      "qty": 34,
+      "reserved": 8,
+      "cost": 850,
+      "price": 1200,
+      "min": 10
+    },
+    {
+      "id": "MAT-002",
+      "name": "Фильтр универсальный",
+      "type": "Товар",
+      "unit": "шт.",
+      "qty": 12,
+      "reserved": 3,
+      "cost": 520,
+      "price": 850,
+      "min": 8
+    },
+    {
+      "id": "MAT-003",
+      "name": "Комплект расходных материалов",
+      "type": "Товар",
+      "unit": "компл.",
+      "qty": 5,
+      "reserved": 2,
+      "cost": 1600,
+      "price": 2400,
+      "min": 10
+    },
+    {
+      "id": "MAT-004",
+      "name": "Очиститель, 500 мл",
+      "type": "Товар",
+      "unit": "шт.",
+      "qty": 48,
+      "reserved": 0,
+      "cost": 400,
+      "price": 640,
+      "min": 12
+    },
+    {
+      "id": "SRV-001",
+      "name": "Комплексное обслуживание",
+      "type": "Услуга",
+      "unit": "усл.",
+      "qty": 0,
+      "reserved": 0,
+      "cost": 14000,
+      "price": 28000,
+      "min": 0
+    },
+    {
+      "id": "SRV-002",
+      "name": "Плановое обслуживание",
+      "type": "Услуга",
+      "unit": "усл.",
+      "qty": 0,
+      "reserved": 0,
+      "cost": 6000,
+      "price": 12800,
+      "min": 0
+    },
+    {
+      "id": "SRV-003",
+      "name": "Монтаж и настройка",
+      "type": "Услуга",
+      "unit": "час",
+      "qty": 0,
+      "reserved": 0,
+      "cost": 1800,
+      "price": 3500,
+      "min": 0
+    }
+  ],
+  "customers": [
+    {
+      "id": "C-001",
+      "name": "ООО «Атмосфера»",
+      "type": "Клиент",
+      "contact": "Ирина Волкова",
+      "email": "irina@example.com",
+      "phone": "+7 (000) 000-00-01",
+      "city": "Санкт-Петербург",
+      "address": "Демонстрационный адрес",
+      "inn": ""
+    },
+    {
+      "id": "C-002",
+      "name": "Александр Петров",
+      "type": "Клиент",
+      "contact": "Александр",
+      "email": "alex@example.com",
+      "phone": "+7 (000) 000-00-02",
+      "city": "Санкт-Петербург",
+      "address": "",
+      "inn": ""
+    },
+    {
+      "id": "C-003",
+      "name": "ООО «Новый формат»",
+      "type": "Клиент",
+      "contact": "Михаил Иванов",
+      "email": "office@example.com",
+      "phone": "",
+      "city": "Санкт-Петербург",
+      "address": "",
+      "inn": ""
+    },
+    {
+      "id": "C-004",
+      "name": "Мария Соколова",
+      "type": "Клиент",
+      "contact": "Мария",
+      "email": "maria@example.com",
+      "phone": "",
+      "city": "Санкт-Петербург",
+      "address": "",
+      "inn": ""
+    }
+  ],
+  "suppliers": [
+    {
+      "id": "S-001",
+      "name": "ООО «Снабжение»",
+      "type": "Поставщик",
+      "contact": "Отдел продаж",
+      "email": "supply@example.com",
+      "phone": "",
+      "city": "Санкт-Петербург",
+      "inn": ""
+    },
+    {
+      "id": "S-002",
+      "name": "ТД «Профи»",
+      "type": "Поставщик",
+      "contact": "Отдел продаж",
+      "email": "profi@example.com",
+      "phone": "",
+      "city": "Москва",
+      "inn": ""
+    }
+  ],
+  "orders": [
+    {
+      "id": "SO-2026-0048",
+      "partner": "C-001",
+      "lines": [
+        {
+          "item": "SRV-001",
+          "qty": 2,
+          "rate": 28000
+        },
+        {
+          "item": "MAT-003",
+          "qty": 10,
+          "rate": 2400
+        },
+        {
+          "item": "SRV-003",
+          "qty": 1,
+          "rate": 4500
+        }
+      ],
+      "date": "2026-11-05",
+      "delivery": "2026-11-09",
+      "state": "submitted",
+      "delivered": 0,
+      "paid": 40000,
+      "discount": 0,
+      "warehouse": "Основной склад",
+      "owner": "Алексей Курносов",
+      "notes": "",
+      "terms": "Оплата по согласованным условиям.",
+      "history": [
+        {
+          "text": "Заказ подтверждён",
+          "at": "2026-11-05T10:42:00"
+        }
+      ]
+    },
+    {
+      "id": "SO-2026-0047",
+      "partner": "C-002",
+      "lines": [
+        {
+          "item": "SRV-002",
+          "qty": 1,
+          "rate": 12800
+        }
+      ],
+      "date": "2026-11-04",
+      "delivery": "2026-11-04",
+      "state": "submitted",
+      "delivered": 100,
+      "paid": 12800,
+      "discount": 0,
+      "warehouse": "Основной склад",
+      "owner": "Алексей Курносов",
+      "notes": "",
+      "terms": "Оплата по согласованным условиям.",
+      "history": [
+        {
+          "text": "Заказ подтверждён",
+          "at": "2026-11-04T10:42:00"
+        }
+      ]
+    },
+    {
+      "id": "SO-2026-0046",
+      "partner": "C-003",
+      "lines": [
+        {
+          "item": "SRV-003",
+          "qty": 8,
+          "rate": 3500
+        },
+        {
+          "item": "MAT-003",
+          "qty": 10,
+          "rate": 2400
+        },
+        {
+          "item": "MAT-002",
+          "qty": 5,
+          "rate": 840
+        }
+      ],
+      "date": "2026-11-04",
+      "delivery": "2026-11-08",
+      "state": "submitted",
+      "delivered": 40,
+      "paid": 0,
+      "discount": 0,
+      "warehouse": "Основной склад",
+      "owner": "Алексей Курносов",
+      "notes": "",
+      "terms": "Оплата по согласованным условиям.",
+      "history": [
+        {
+          "text": "Заказ подтверждён",
+          "at": "2026-11-04T10:42:00"
+        }
+      ]
+    },
+    {
+      "id": "SO-2026-0045",
+      "partner": "C-004",
+      "lines": [
+        {
+          "item": "SRV-002",
+          "qty": 1,
+          "rate": 15000
+        },
+        {
+          "item": "SRV-003",
+          "qty": 1,
+          "rate": 3500
+        }
+      ],
+      "date": "2026-11-03",
+      "delivery": "2026-11-03",
+      "state": "submitted",
+      "delivered": 100,
+      "paid": 18500,
+      "discount": 0,
+      "warehouse": "Основной склад",
+      "owner": "Алексей Курносов",
+      "notes": "",
+      "terms": "Оплата по согласованным условиям.",
+      "history": [
+        {
+          "text": "Заказ подтверждён",
+          "at": "2026-11-03T10:42:00"
+        }
+      ]
+    },
+    {
+      "id": "SO-2026-0044",
+      "partner": "C-001",
+      "lines": [
+        {
+          "item": "SRV-001",
+          "qty": 1,
+          "rate": 28000
+        }
+      ],
+      "date": "2026-11-02",
+      "delivery": "2026-11-06",
+      "state": "draft",
+      "delivered": 0,
+      "paid": 0,
+      "discount": 0,
+      "warehouse": "Основной склад",
+      "owner": "Алексей Курносов",
+      "notes": "",
+      "terms": "Оплата по согласованным условиям.",
+      "history": [
+        {
+          "text": "Создан черновик",
+          "at": "2026-11-02T10:42:00"
+        }
+      ]
+    },
+    {
+      "id": "SO-2026-0043",
+      "partner": "C-003",
+      "lines": [
+        {
+          "item": "SRV-001",
+          "qty": 1,
+          "rate": 28000
+        },
+        {
+          "item": "MAT-001",
+          "qty": 5,
+          "rate": 1200
+        }
+      ],
+      "date": "2026-11-01",
+      "delivery": "2026-11-05",
+      "state": "submitted",
+      "delivered": 100,
+      "paid": 34000,
+      "discount": 0,
+      "warehouse": "Основной склад",
+      "owner": "Алексей Курносов",
+      "notes": "",
+      "terms": "Оплата по согласованным условиям.",
+      "history": [
+        {
+          "text": "Заказ подтверждён",
+          "at": "2026-11-01T10:42:00"
+        }
+      ]
+    }
+  ],
+  "invoices": [
+    {
+      "id": "INV-2026-0031",
+      "partner": "C-002",
+      "lines": [
+        {
+          "item": "SRV-002",
+          "qty": 1,
+          "rate": 12800
+        }
+      ],
+      "date": "2026-11-04",
+      "delivery": "2026-11-04",
+      "state": "submitted",
+      "delivered": 100,
+      "paid": 12800,
+      "discount": 0,
+      "warehouse": "Основной склад",
+      "owner": "Алексей Курносов",
+      "notes": "",
+      "terms": "Оплата по согласованным условиям.",
+      "history": [
+        {
+          "text": "Реализация создана",
+          "at": "2026-11-04T12:00:00"
+        }
+      ],
+      "source": "SO-2026-0047",
+      "kind": "invoices"
+    },
+    {
+      "id": "INV-2026-0032",
+      "partner": "C-004",
+      "lines": [
+        {
+          "item": "SRV-002",
+          "qty": 1,
+          "rate": 15000
+        },
+        {
+          "item": "SRV-003",
+          "qty": 1,
+          "rate": 3500
+        }
+      ],
+      "date": "2026-11-03",
+      "delivery": "2026-11-03",
+      "state": "submitted",
+      "delivered": 100,
+      "paid": 18500,
+      "discount": 0,
+      "warehouse": "Основной склад",
+      "owner": "Алексей Курносов",
+      "notes": "",
+      "terms": "Оплата по согласованным условиям.",
+      "history": [
+        {
+          "text": "Реализация создана",
+          "at": "2026-11-03T12:00:00"
+        }
+      ],
+      "source": "SO-2026-0045",
+      "kind": "invoices"
+    },
+    {
+      "id": "INV-2026-0033",
+      "partner": "C-003",
+      "lines": [
+        {
+          "item": "SRV-001",
+          "qty": 1,
+          "rate": 28000
+        },
+        {
+          "item": "MAT-001",
+          "qty": 5,
+          "rate": 1200
+        }
+      ],
+      "date": "2026-11-01",
+      "delivery": "2026-11-05",
+      "state": "submitted",
+      "delivered": 100,
+      "paid": 34000,
+      "discount": 0,
+      "warehouse": "Основной склад",
+      "owner": "Алексей Курносов",
+      "notes": "",
+      "terms": "Оплата по согласованным условиям.",
+      "history": [
+        {
+          "text": "Реализация создана",
+          "at": "2026-11-01T12:00:00"
+        }
+      ],
+      "source": "SO-2026-0043",
+      "kind": "invoices"
+    }
+  ],
+  "payments": [
+    {
+      "id": "PAY-2026-0042",
+      "source": "SO-2026-0048",
+      "partner": "C-001",
+      "date": "2026-11-05",
+      "amount": 40000,
+      "direction": "in",
+      "account": "Расчётный счёт",
+      "purpose": "Оплата по SO-2026-0048",
+      "state": "submitted"
+    },
+    {
+      "id": "PAY-2026-0043",
+      "source": "SO-2026-0047",
+      "partner": "C-002",
+      "date": "2026-11-04",
+      "amount": 12800,
+      "direction": "in",
+      "account": "Расчётный счёт",
+      "purpose": "Оплата по SO-2026-0047",
+      "state": "submitted"
+    },
+    {
+      "id": "PAY-2026-0044",
+      "source": "SO-2026-0045",
+      "partner": "C-004",
+      "date": "2026-11-03",
+      "amount": 18500,
+      "direction": "in",
+      "account": "Расчётный счёт",
+      "purpose": "Оплата по SO-2026-0045",
+      "state": "submitted"
+    },
+    {
+      "id": "PAY-2026-0045",
+      "source": "SO-2026-0043",
+      "partner": "C-003",
+      "date": "2026-11-01",
+      "amount": 34000,
+      "direction": "in",
+      "account": "Расчётный счёт",
+      "purpose": "Оплата по SO-2026-0043",
+      "state": "submitted"
+    }
+  ],
+  "quotes": [
+    {
+      "id": "QUO-2026-0012",
+      "partner": "C-001",
+      "lines": [
+        {
+          "item": "SRV-001",
+          "qty": 1,
+          "rate": 28000
+        },
+        {
+          "item": "MAT-003",
+          "qty": 2,
+          "rate": 2400
+        }
+      ],
+      "date": "2026-11-05",
+      "delivery": "2026-11-12",
+      "state": "draft",
+      "delivered": 0,
+      "paid": 0,
+      "discount": 0,
+      "warehouse": "Основной склад",
+      "owner": "Алексей Курносов",
+      "notes": "",
+      "terms": "Оплата по согласованным условиям.",
+      "history": [
+        {
+          "text": "Создан черновик",
+          "at": "2026-11-05T10:42:00"
+        }
+      ]
+    }
+  ],
+  "purchaseOrders": [
+    {
+      "id": "PO-2026-0018",
+      "partner": "S-001",
+      "lines": [
+        {
+          "item": "MAT-003",
+          "qty": 12,
+          "rate": 1600
+        },
+        {
+          "item": "MAT-002",
+          "qty": 20,
+          "rate": 520
+        },
+        {
+          "item": "MAT-004",
+          "qty": 8,
+          "rate": 400
+        }
+      ],
+      "date": "2026-11-04",
+      "delivery": "2026-11-07",
+      "state": "submitted",
+      "delivered": 0,
+      "paid": 0,
+      "discount": 0,
+      "warehouse": "Основной склад",
+      "owner": "Алексей Курносов",
+      "notes": "",
+      "terms": "Оплата по согласованным условиям.",
+      "history": [
+        {
+          "text": "Заказ подтверждён",
+          "at": "2026-11-04T10:42:00"
+        }
+      ]
+    },
+    {
+      "id": "PO-2026-0017",
+      "partner": "S-002",
+      "lines": [
+        {
+          "item": "MAT-001",
+          "qty": 20,
+          "rate": 850
+        }
+      ],
+      "date": "2026-11-01",
+      "delivery": "2026-11-03",
+      "state": "submitted",
+      "delivered": 100,
+      "paid": 17000,
+      "discount": 0,
+      "warehouse": "Основной склад",
+      "owner": "Алексей Курносов",
+      "notes": "",
+      "terms": "Оплата по согласованным условиям.",
+      "history": [
+        {
+          "text": "Заказ подтверждён",
+          "at": "2026-11-01T10:42:00"
+        }
+      ]
+    }
+  ],
+  "receipts": [],
+  "stockDocs": [],
+  "expenses": [
+    {
+      "id": "EXP-2026-0011",
+      "partner": "Аренда",
+      "date": "2026-11-01",
+      "amount": 45000,
+      "category": "Аренда",
+      "account": "Расчётный счёт",
+      "purpose": "Аренда помещения за ноябрь",
+      "state": "submitted"
+    },
+    {
+      "id": "EXP-2026-0012",
+      "partner": "Интернет и связь",
+      "date": "2026-11-02",
+      "amount": 2500,
+      "category": "Связь",
+      "account": "Расчётный счёт",
+      "purpose": "Связь за ноябрь",
+      "state": "submitted"
+    }
+  ],
+  "sync": [
+    {
+      "id": "EX-0001",
+      "source": "SO-2026-0048",
+      "entity": "Заказ клиента",
+      "direction": "Clientora → ERP",
+      "state": "waiting",
+      "updated": "05.11.2026, 10:42"
+    },
+    {
+      "id": "EX-0002",
+      "source": "SO-2026-0047",
+      "entity": "Оплата",
+      "direction": "ERP → Clientora",
+      "state": "done",
+      "updated": "04.11.2026, 16:20"
+    }
+  ],
+  "favorites": [],
+  "onboardingDismissed": false,
+  "views": {},
+  "settings": {
+    "cashOpening": 28300,
+    "bankOpening": 188550
+  }
+}

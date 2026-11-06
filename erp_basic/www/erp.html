@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
+  <meta name="description" content="ERP Basic — совместный управленческий учёт организации на сервере ERPNext.">
+  <meta name="robots" content="noindex,nofollow">
+  <meta name="theme-color" content="#f8f8f8">
+  <title>ERP Basic — серверный учёт</title>
+  <script src="/assets/erp_basic/theme.js"></script>
+  <link rel="stylesheet" href="/assets/erp_basic/erp-base.css">
+  <link rel="stylesheet" href="/assets/erp_basic/themes.css">
+  <link rel="stylesheet" href="/assets/erp_basic/server-app.css">
+  <script defer src="/assets/erp_basic/server-api.js"></script>
+  <script defer src="/assets/erp_basic/server-app.js"></script>
+</head>
+<body class="erp-server-host">
+  <a href="#content" class="skip">К содержимому</a>
+  <div id="server-app" aria-live="polite"><main class="server-start" id="content"><h1>ERP Basic</h1><p>Подключение к серверу…</p></main></div>
+  <div id="toasts" role="status" aria-live="polite"></div>
+  <dialog id="server-dialog"></dialog>
+  <noscript><p>Включите JavaScript, чтобы работать с серверным учётом ERP Basic.</p></noscript>
+</body>
+</html>

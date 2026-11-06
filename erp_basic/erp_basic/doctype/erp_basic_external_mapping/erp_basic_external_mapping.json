@@ -1,0 +1,121 @@
+{
+  "doctype": "DocType",
+  "name": "ERP Basic External Mapping",
+  "module": "ERP Basic",
+  "custom": 0,
+  "engine": "InnoDB",
+  "track_changes": 0,
+  "allow_rename": 0,
+  "autoname": "hash",
+  "field_order": [
+    "company",
+    "connector",
+    "external_type",
+    "external_id",
+    "erp_doctype",
+    "erp_name",
+    "remote_version",
+    "remote_hash",
+    "local_version",
+    "native_modified",
+    "last_result",
+    "business_hash"
+  ],
+  "fields": [
+    {
+      "fieldname": "company",
+      "label": "Организация",
+      "fieldtype": "Link",
+      "options": "Company",
+      "reqd": 1,
+      "in_list_view": 1,
+      "search_index": 1
+    },
+    {
+      "fieldname": "connector",
+      "label": "Подключение",
+      "fieldtype": "Link",
+      "options": "ERP Basic Connector",
+      "reqd": 1,
+      "search_index": 1
+    },
+    {
+      "fieldname": "external_type",
+      "label": "Тип внешнего объекта",
+      "fieldtype": "Select",
+      "options": "customer\noffering\norder",
+      "reqd": 1
+    },
+    {
+      "fieldname": "external_id",
+      "label": "UUID внешнего объекта",
+      "fieldtype": "Data",
+      "reqd": 1
+    },
+    {
+      "fieldname": "erp_doctype",
+      "label": "Тип документа ERP",
+      "fieldtype": "Link",
+      "options": "DocType",
+      "reqd": 1
+    },
+    {
+      "fieldname": "erp_name",
+      "label": "Документ ERP",
+      "fieldtype": "Dynamic Link",
+      "options": "erp_doctype",
+      "reqd": 0,
+      "search_index": 1
+    },
+    {
+      "fieldname": "remote_version",
+      "label": "Последняя входящая версия",
+      "fieldtype": "Int",
+      "default": "0",
+      "read_only": 1
+    },
+    {
+      "fieldname": "remote_hash",
+      "label": "Хеш последней входящей версии",
+      "fieldtype": "Data",
+      "read_only": 1
+    },
+    {
+      "fieldname": "local_version",
+      "label": "Исходящая версия",
+      "fieldtype": "Int",
+      "default": "0",
+      "read_only": 1
+    },
+    {
+      "fieldname": "native_modified",
+      "label": "Ревизия документа после импорта",
+      "fieldtype": "Data",
+      "read_only": 1
+    },
+    {
+      "fieldname": "last_result",
+      "label": "Последний принятый результат",
+      "fieldtype": "Long Text",
+      "read_only": 1
+    },
+    {
+      "fieldname": "business_hash",
+      "label": "Хеш импортированных учётных полей",
+      "fieldtype": "Data",
+      "read_only": 1
+    }
+  ],
+  "permissions": [
+    {
+      "role": "System Manager",
+      "read": 1,
+      "write": 1,
+      "create": 1,
+      "report": 1
+    }
+  ],
+  "sort_field": "modified",
+  "sort_order": "DESC",
+  "states": []
+}

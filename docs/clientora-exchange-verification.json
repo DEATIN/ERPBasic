@@ -1,0 +1,111 @@
+{
+  "schema_version": 1,
+  "result": "passed",
+  "checked_at_utc": "2026-11-06T00:17:04.944630+00:00",
+  "environment": "Изолированные настоящие HTTP-серверы и БД; production не подключалась.",
+  "versions": {
+    "python": "3.12.14",
+    "django": "5.2.18",
+    "frappe": "15.126.0",
+    "erpnext": "15.124.5",
+    "mariadb": "10.11.19",
+    "redis": "7.2.17",
+    "postgresql": "17.11",
+    "mariadb_transaction_isolation": "READ-COMMITTED"
+  },
+  "source_bases": {
+    "erp_basic": {
+      "repository": "https://github.com/DEATIN/ERPBasic",
+      "main_commit": "6b0af4dec4d348a58197ca70a48f7e2ef5a2244f",
+      "pull_request": 3
+    },
+    "clientora": {
+      "repository": "https://github.com/DEATIN/Clientora",
+      "main_commit": "302cc1d22495e72bdeccb4964e2ace8b0dd868c6",
+      "pull_request": 132
+    },
+    "frappe": {
+      "repository": "https://github.com/frappe/frappe",
+      "commit": "53bae3ef2550ca96320f036f581446783cd11b72"
+    },
+    "erpnext": {
+      "repository": "https://github.com/frappe/erpnext",
+      "commit": "e5cde8c4b9e3f7f567a92ca3e65fd411402b89ce"
+    }
+  },
+  "source_note": "Commit main обозначает базу изменений. Проверки выполнены на рабочих версиях PR с заключительными исправлениями интеграции; результат удалённого CI отслеживается отдельно для каждого опубликованного head.",
+  "suites": [
+    {
+      "name": "erp_native_integration",
+      "command": "bench --site <test-site> execute erp_basic.tests.test_integration.run",
+      "database": "MariaDB",
+      "tests": 12,
+      "failures": 0,
+      "errors": 0,
+      "test_duration_seconds": 6.366,
+      "process_duration_seconds": 7.188,
+      "checks": [
+        "Расчёт стандартной цены ERPNext и черновик Sales Order",
+        "Повтор UUID, конфликт тела, старая версия и конфликт одной версии",
+        "Отсутствующее соответствие сохраняется и обрабатывается после настройки",
+        "Откат бизнес-данных и outbox при native validation",
+        "Учётные реквизиты Customer не изменяются",
+        "Конфликт ручного изменения и защита проведённого заказа",
+        "Изменение статуса CRM не переписывает проведённый документ",
+        "Явное сохранение ERP при конфликте и повтор решения",
+        "Company и Customer User Permissions проверяются на сохранённом результате",
+        "Отзыв Company, Integration role, native read и enabled блокирует HTTP, управляемый повтор сохраняется"
+      ]
+    },
+    {
+      "name": "clientora_exchange_and_existing_integrations",
+      "command": "python manage.py test crm.test_erp_exchange crm.test_integrations --noinput",
+      "database": "PostgreSQL",
+      "tests": 32,
+      "exchange_tests": 13,
+      "existing_integration_tests": 19,
+      "failures": 0,
+      "errors": 0,
+      "test_duration_seconds": 9.569,
+      "process_duration_seconds": 11.153,
+      "checks": [
+        "Транзакционный outbox, дубли, конфликты и изоляция организации",
+        "Права владельца и администратора, отсутствие секретов в журнале",
+        "Шесть параллельных callback создают одну проекцию",
+        "Шесть worker получают одно резервирование",
+        "Реальный сетевой отказ сохраняет событие для повтора",
+        "Пауза восстановленного контура предотвращает отправку",
+        "Stale ACK с другой Company не связывает документ",
+        "Поздний счёт после нового платежа сохраняется отдельно",
+        "CRM Order, Customer и Ledger не изменяются учётным callback",
+        "Регрессии 19 существующих интеграционных сценариев Clientora"
+      ]
+    },
+    {
+      "name": "two_server_live_exchange",
+      "runner": "Clientora/tools/erp-basic/verify-live-exchange.py",
+      "real_http_servers": 2,
+      "databases": [
+        "PostgreSQL",
+        "MariaDB"
+      ],
+      "checks_count": 6,
+      "duration_seconds": 6.708,
+      "process_duration_seconds": 10.55,
+      "checks": [
+        "Вход CRM/CSRF и настоящий HTTP Order с транзакционным outbox",
+        "Native цена ERPNext, submit отдельным reviewer и обратный HTTP callback",
+        "HTTP-повтор UUID возвращает прежний документ; другое тело получает409",
+        "Устаревший callback не переписывает новое учётное состояние",
+        "Потерянный ответ после commit и повтор без второго Sales Order",
+        "Отсутствуют обменный цикл и выдуманный платёж CRM"
+      ]
+    }
+  ],
+  "sanitization": "Отчёт не содержит UUID и имён тестовых документов, персональных данных, локальных путей, ключей или частных endpoint.",
+  "limits": [
+    "Отдельный двухсерверный сценарий проводит Sales Order; полный складской и финансовый жизненный цикл проверяется основным ERP suite.",
+    "Автоматическая production-настройка и развёртывание не выполнялись.",
+    "Автоматический backfill исторических счетов и платежей не реализован."
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "doctype": "DocType", "name": "ERP Basic Migration Run", "module": "ERP Basic", "autoname": "hash", "engine": "InnoDB",
+  "field_order": ["company", "source_id", "source_hash", "cutoff_date", "warehouse", "state", "source_payload", "report"],
+  "fields": [
+    {"fieldname": "company", "label": "Организация", "fieldtype": "Link", "options": "Company", "reqd": 1},
+    {"fieldname": "source_id", "label": "Источник", "fieldtype": "Data", "reqd": 1},
+    {"fieldname": "source_hash", "label": "Хеш исходника", "fieldtype": "Data", "reqd": 1},
+    {"fieldname": "cutoff_date", "label": "Дата среза", "fieldtype": "Date", "reqd": 1},
+    {"fieldname": "warehouse", "label": "Склад среза", "fieldtype": "Link", "options": "Warehouse", "reqd": 1},
+    {"fieldname": "state", "label": "Состояние", "fieldtype": "Select", "options": "Running\nCompleted", "reqd": 1},
+    {"fieldname": "source_payload", "label": "Исходный JSON", "fieldtype": "Long Text", "reqd": 1},
+    {"fieldname": "report", "label": "Отчёт сверки", "fieldtype": "Long Text", "reqd": 1}
+  ],
+  "permissions": [{"role": "System Manager", "read": 1, "create": 1}],
+  "sort_field": "creation", "sort_order": "DESC", "allow_rename": 0
+}

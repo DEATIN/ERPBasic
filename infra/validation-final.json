@@ -1,0 +1,727 @@
+{
+  "schema_version": 2,
+  "scope": "Final GitHub acceptance at a132b44 including live Chromium, real HTTP, ERPNext/MariaDB, Redis worker, encrypted backup and restore; earlier local and GitHub results are separately identified baselines.",
+  "tested_app_commit": "a132b4465a37c4e94dc9b94749a218149fd7c0bb",
+  "source_sha256": "94eb2454930bd4aae196fbe8ee71b933a3c2c9e1e0c2952c6c08b2bb597fdab3",
+  "scenario_counts": {
+    "core": 9,
+    "concurrency": 4,
+    "integration": 12,
+    "migration": 5,
+    "http": 9,
+    "tenant_http": 3,
+    "live_browser_with_independent_sql_verification": 1,
+    "redis_worker": 1
+  },
+  "quality_gates": {
+    "server": {
+      "conclusion": "success",
+      "run_url": "https://github.com/DEATIN/ERPBasic/actions/runs/42141652409",
+      "job_id": 127643140565,
+      "passed_stages": 15,
+      "backup_restore_passed": true
+    },
+    "node_and_build": {
+      "conclusion": "success",
+      "run_url": "https://github.com/DEATIN/ERPBasic/actions/runs/42141652472",
+      "tests": 43,
+      "demo_tests": 7,
+      "server_api_startup_tests": 36,
+      "build_passed": true
+    },
+    "chromium_contract": {
+      "conclusion": "success",
+      "run_url": "https://github.com/DEATIN/ERPBasic/actions/runs/42141652354",
+      "job_id": 127643433774,
+      "tests": 11,
+      "http_fixtures": true,
+      "separate_from_live_browser_test": true
+    },
+    "codeql": {
+      "conclusion": "success",
+      "check_url": "https://github.com/DEATIN/ERPBasic/runs/127643338026",
+      "previous_findings_fixed": 5,
+      "automatically_resolved_review_threads": 5,
+      "manual_dismissals": false,
+      "suppressions_added": false
+    }
+  },
+  "github_ci": {
+    "head_commit": "a132b4465a37c4e94dc9b94749a218149fd7c0bb",
+    "checkout_commit": "806111e592b99159e5c94c5dea68f8d4c67bd1eb",
+    "checkout_kind": "GitHub pull request merge ref; application source SHA-256 matches expected source for a132b44.",
+    "source_sha256": "94eb2454930bd4aae196fbe8ee71b933a3c2c9e1e0c2952c6c08b2bb597fdab3",
+    "run_url": "https://github.com/DEATIN/ERPBasic/actions/runs/42141652409",
+    "job_id": 127643140565,
+    "conclusion": "success",
+    "artifact_url": "https://github.com/DEATIN/ERPBasic/actions/runs/42141652409/artifacts/13467009455",
+    "artifact_sha256": "aa74ddd931663e7feaed4c16d3440fcd25baf348468b74c344b31189d6cfc7cf",
+    "pipeline": {
+      "schema_version": 1,
+      "head_commit": "a132b4465a37c4e94dc9b94749a218149fd7c0bb",
+      "passed": true,
+      "duration_seconds": 269.917,
+      "environment": {
+        "mariadb": "10.11.19-MariaDB",
+        "transaction_isolation": "READ-COMMITTED",
+        "python": "3.12.14",
+        "redis_cache": "7.2.17",
+        "redis_queue": "7.2.17",
+        "postgresql": "17.11 (Debian 17.11-0+deb13u1)"
+      },
+      "checks": [
+        {
+          "name": "initial_company",
+          "duration_seconds": 7.187,
+          "passed": true
+        },
+        {
+          "name": "assets",
+          "duration_seconds": 21.563,
+          "passed": true
+        },
+        {
+          "name": "schema",
+          "duration_seconds": 5.708,
+          "passed": true
+        },
+        {
+          "name": "peer_schema",
+          "duration_seconds": 5.685,
+          "passed": true
+        },
+        {
+          "name": "business",
+          "duration_seconds": 18.356,
+          "passed": true
+        },
+        {
+          "name": "concurrency",
+          "duration_seconds": 15.139,
+          "passed": true
+        },
+        {
+          "name": "integration",
+          "duration_seconds": 10.119,
+          "passed": true
+        },
+        {
+          "name": "migration",
+          "duration_seconds": 3.457,
+          "passed": true
+        },
+        {
+          "name": "http",
+          "duration_seconds": 15.137,
+          "passed": true
+        },
+        {
+          "name": "tenant_prepare",
+          "duration_seconds": 7.436,
+          "passed": true
+        },
+        {
+          "name": "tenant_http",
+          "duration_seconds": 6.384,
+          "passed": true
+        },
+        {
+          "name": "browser_prepare",
+          "duration_seconds": 2.086,
+          "passed": true
+        },
+        {
+          "name": "browser_ui",
+          "duration_seconds": 4.43,
+          "passed": true
+        },
+        {
+          "name": "browser_database",
+          "duration_seconds": 1.804,
+          "passed": true
+        },
+        {
+          "name": "queue",
+          "duration_seconds": 2.537,
+          "passed": true
+        }
+      ],
+      "browser_requested": true,
+      "browser": {
+        "kind": "orders",
+        "docstatus": 1,
+        "grand_total": "251.00",
+        "browser": "Chromium",
+        "transport": "настоящий HTTP",
+        "mocks": false,
+        "reloaded": true,
+        "relogged": true,
+        "independent_database_verification_passed": true
+      },
+      "restore": {
+        "duration_seconds": 5.288,
+        "database_verified": true,
+        "verified_doctypes": 91,
+        "verified_encrypted_passwords": 1,
+        "public_files": 1,
+        "private_files": 3,
+        "attachments_verified": true,
+        "external_calls_disabled": true,
+        "scheduler_disabled": true,
+        "maintenance_mode": true,
+        "isolation": "new Frappe Site and new database on the same local MariaDB instance",
+        "application_versions": {
+          "frappe": {
+            "version": "15.126.0",
+            "commit": "53bae3ef2550ca96320f036f581446783cd11b72"
+          },
+          "erpnext": {
+            "version": "15.124.5",
+            "commit": "e5cde8c4b9e3f7f567a92ca3e65fd411402b89ce"
+          },
+          "erp_basic": {
+            "version": "0.4.0.dev0",
+            "commit": "806111e592b99159e5c94c5dea68f8d4c67bd1eb",
+            "source_sha256": "94eb2454930bd4aae196fbe8ee71b933a3c2c9e1e0c2952c6c08b2bb597fdab3"
+          }
+        }
+      }
+    },
+    "backup": {
+      "bytes": 958475,
+      "duration_seconds": 2.023,
+      "ciphertext_sha256": "9f409c7b77cf233c687203c41f5e5ba0b9ef752eface1fde76991b242ec36982",
+      "database_credentials_transport": "anonymous Linux memfd inherited through pass_fds; no on-disk dump password file"
+    },
+    "browser_test_document": {
+      "name": "SAL-ORD-2026-00010",
+      "docstatus": 1,
+      "grand_total": "251.00",
+      "purpose": "Synthetic acceptance-test Sales Order, verified by a separate bench process after live UI save, submit, reload and login."
+    },
+    "artifact_provenance": {
+      "schema_version": 1,
+      "repository": "DEATIN/ERPBasic",
+      "pull_request": 3,
+      "head_commit": "a132b4465a37c4e94dc9b94749a218149fd7c0bb",
+      "source_sha256": "94eb2454930bd4aae196fbe8ee71b933a3c2c9e1e0c2952c6c08b2bb597fdab3",
+      "run_url": "https://github.com/DEATIN/ERPBasic/actions/runs/42141652409",
+      "job_id": 127643140565,
+      "artifact_url": "https://github.com/DEATIN/ERPBasic/actions/runs/42141652409/artifacts/13467009455",
+      "artifact_sha256": "aa74ddd931663e7feaed4c16d3440fcd25baf348468b74c344b31189d6cfc7cf",
+      "conclusion": "success",
+      "collected_at_utc": "2026-11-06T01:16:47.506716+00:00",
+      "original_file_sha256": {
+        "browser-live.json": "d320e8d235778cdbec4ee7b5512526b0916e5527b59cfcf37d25f31a6aca63d5",
+        "browser/live-order-dark.png": "48b14adb35ec931a4a1e74e50f12aadd1817548b625d1cb4cdac77d7f4e40418",
+        "browser/live-order-light.png": "f70d0bb0d534ea796da539eb246ee243c998ce040d1981d95e63fe16a92d8f73",
+        "browser/live-order-mobile.png": "d21cdefdfa996beb646f26f0458a1f0afd69e06f8a0ebbe5821257216bd3544b",
+        "queue.json": "c2f73e4bde966cf669fd443f7af419c2d508d20920edc6a854f2e2a7f20e92f5",
+        "restore.json": "3619face5aae10cc6f8cadbd3f3f98e927c7acc07b4dea32576bcf23f2f00db8",
+        "server-ci.json": "1e36f7bec0d3afc2647aa9d5ccf80513585daf48873d52398ac718d904e7e012"
+      },
+      "sanitized_file_sha256": {
+        "server-ci.json": "83f51512a131f96f688924cc3c5d24f7fdfde6d97a91ebe679bb63292f86e32a",
+        "restore.json": "651d2c0d745ab63b2adacf75bdd75e4fbf26298c71f0c491cb62f37976a252c7",
+        "browser-live.json": "7df5a09ca953623f288842b9034800caf5fd5c3b7e80d777ec0d977fcb6ec86b"
+      },
+      "sanitization": "Removed Site names, company/document identifiers and backup IDs; retained versions, hashes, aggregate metrics and check results. Original screenshots and JSON remain separately in raw/."
+    }
+  },
+  "additional_local_security_checks": {
+    "application_source_sha256": "83d986ce16980f31d814b2fe689cec78c30f569060dec10c0fa0f2c29bcc94ab",
+    "scope": "Targeted local security checks after 4ce4267 and before final a132b44 GitHub acceptance; not a repeated full local pipeline or local Chromium pass.",
+    "node": {
+      "tests": 43,
+      "passed": true,
+      "original_demo_tests": 7
+    },
+    "http": {
+      "tests": 9,
+      "failures": 0,
+      "errors": 0,
+      "transport": "настоящий HTTP",
+      "mocks": false,
+      "duration_seconds": 10.49,
+      "process_duration_seconds": 12.247,
+      "company_docshare_enforced": true,
+      "file_rebinding_denied": true,
+      "file_cmd_rpc_denied": true,
+      "upload_method_delegation_denied": true,
+      "own_file_reuse_allowed": true
+    },
+    "backup_restore_memfd": {
+      "passed": true,
+      "process_duration_seconds": 8.292,
+      "restore_duration_seconds": 5.759,
+      "verified_doctypes": 91,
+      "verified_encrypted_passwords": 1,
+      "public_files": 1,
+      "private_files": 3,
+      "external_calls_disabled": true,
+      "memfd_failure_cases": [
+        "memfd_unavailable",
+        "memory_write_failed"
+      ],
+      "failure_creates_password_file": false,
+      "failure_starts_dump": false,
+      "descriptor_closed_on_failure": true
+    }
+  },
+  "baselines": {
+    "local_4ce4267": {
+      "tested_app_commit": "4ce4267dabc2db7f07b5985d7eb21efe4591b33f",
+      "scenario_counts": {
+        "core": 9,
+        "concurrency": 4,
+        "integration": 12,
+        "migration": 5,
+        "http": 8,
+        "tenant_http": 3
+      },
+      "backup": {
+        "bytes": 956827,
+        "duration_seconds": 1.531,
+        "ciphertext_sha256": "b248d18c7bf8c4a57cd0a2c0b1b07eba7ccbe2167750de00563212d8a63e8d62"
+      },
+      "site_secrets": {
+        "different_administrator_passwords": true,
+        "credential_file_mode": "0600",
+        "different_databases": true,
+        "temporary_test_credentials_removed": true
+      },
+      "notes": [
+        "Both acceptance Sites were newly installed; existing MariaDB, Redis and PostgreSQL services continued running in the same isolated runtime.",
+        "The source application commit and content digest were verified during backup and restore.",
+        "Restore time measures a new Site and database on the same MariaDB instance, not full machine disaster recovery.",
+        "Local Chromium execution is restricted in this executor. browser_requested=false is not a browser test pass."
+      ],
+      "scope": "Earlier full local acceptance at 4ce4267; browser was not run and this is not a full local run of a132b44.",
+      "source_sha256": "0d5f65026dee181e3b72c801af876fe8a6e65834aeeb4d1adecc2f22eac9ac1c",
+      "pipeline": {
+        "passed": true,
+        "checks": [
+          {
+            "name": "initial_company",
+            "duration_seconds": 5.787,
+            "passed": true
+          },
+          {
+            "name": "assets",
+            "duration_seconds": 10.871,
+            "passed": true
+          },
+          {
+            "name": "schema",
+            "duration_seconds": 4.031,
+            "passed": true
+          },
+          {
+            "name": "peer_schema",
+            "duration_seconds": 4.08,
+            "passed": true
+          },
+          {
+            "name": "business",
+            "duration_seconds": 15.094,
+            "passed": true
+          },
+          {
+            "name": "concurrency",
+            "duration_seconds": 13.042,
+            "passed": true
+          },
+          {
+            "name": "integration",
+            "duration_seconds": 8.034,
+            "passed": true
+          },
+          {
+            "name": "migration",
+            "duration_seconds": 2.535,
+            "passed": true
+          },
+          {
+            "name": "http",
+            "duration_seconds": 11.18,
+            "passed": true
+          },
+          {
+            "name": "tenant_prepare",
+            "duration_seconds": 6.365,
+            "passed": true
+          },
+          {
+            "name": "tenant_http",
+            "duration_seconds": 5.283,
+            "passed": true
+          },
+          {
+            "name": "queue",
+            "duration_seconds": 1.247,
+            "passed": true
+          }
+        ],
+        "browser_requested": false,
+        "environment": {
+          "mariadb": "10.11.19-MariaDB",
+          "transaction_isolation": "READ-COMMITTED",
+          "python": "3.12.14",
+          "redis_cache": "7.2.17",
+          "redis_queue": "7.2.17",
+          "postgresql": "17.11 (Debian 17.11-0+deb13u1)"
+        },
+        "browser": {
+          "passed": false,
+          "reason": "Не запрошен --browser-tests; это не результат браузерной проверки"
+        },
+        "restore": {
+          "duration_seconds": 6.08,
+          "database_verified": true,
+          "verified_doctypes": 91,
+          "verified_encrypted_passwords": 1,
+          "public_files": 1,
+          "private_files": 3,
+          "attachments_verified": true,
+          "external_calls_disabled": true,
+          "scheduler_disabled": true,
+          "maintenance_mode": true,
+          "isolation": "new Frappe Site and new database on the same local MariaDB instance",
+          "application_versions": {
+            "frappe": {
+              "version": "15.126.0",
+              "commit": "53bae3ef2550ca96320f036f581446783cd11b72"
+            },
+            "erpnext": {
+              "version": "15.124.5",
+              "commit": "e5cde8c4b9e3f7f567a92ca3e65fd411402b89ce"
+            },
+            "erp_basic": {
+              "version": "0.4.0.dev0",
+              "commit": "4ce4267dabc2db7f07b5985d7eb21efe4591b33f",
+              "source_sha256": "0d5f65026dee181e3b72c801af876fe8a6e65834aeeb4d1adecc2f22eac9ac1c"
+            }
+          }
+        },
+        "duration_seconds": 206.051
+      }
+    },
+    "github_4ce4267": {
+      "head_commit": "4ce4267dabc2db7f07b5985d7eb21efe4591b33f",
+      "run_url": "https://github.com/DEATIN/ERPBasic/actions/runs/42137183949",
+      "job_id": 127628205196,
+      "conclusion": "success",
+      "checkout_kind": "GitHub pull request merge ref; application source hash equals the locally tested head",
+      "artifact_url": "https://github.com/DEATIN/ERPBasic/actions/runs/42137183949/artifacts/13465828016",
+      "artifact_sha256": "6153c02fa413e31a718f281a96763ce6c8e84d936a73b072ccb699bc9c9241b9",
+      "pipeline": {
+        "passed": true,
+        "checks": [
+          {
+            "name": "initial_company",
+            "duration_seconds": 4.746,
+            "passed": true
+          },
+          {
+            "name": "assets",
+            "duration_seconds": 13.691,
+            "passed": true
+          },
+          {
+            "name": "schema",
+            "duration_seconds": 3.812,
+            "passed": true
+          },
+          {
+            "name": "peer_schema",
+            "duration_seconds": 3.81,
+            "passed": true
+          },
+          {
+            "name": "business",
+            "duration_seconds": 12.005,
+            "passed": true
+          },
+          {
+            "name": "concurrency",
+            "duration_seconds": 12.757,
+            "passed": true
+          },
+          {
+            "name": "integration",
+            "duration_seconds": 6.848,
+            "passed": true
+          },
+          {
+            "name": "migration",
+            "duration_seconds": 2.392,
+            "passed": true
+          },
+          {
+            "name": "http",
+            "duration_seconds": 8.831,
+            "passed": true
+          },
+          {
+            "name": "tenant_prepare",
+            "duration_seconds": 4.875,
+            "passed": true
+          },
+          {
+            "name": "tenant_http",
+            "duration_seconds": 4.189,
+            "passed": true
+          },
+          {
+            "name": "browser_prepare",
+            "duration_seconds": 1.464,
+            "passed": true
+          },
+          {
+            "name": "browser_ui",
+            "duration_seconds": 3.482,
+            "passed": true
+          },
+          {
+            "name": "browser_database",
+            "duration_seconds": 1.283,
+            "passed": true
+          },
+          {
+            "name": "queue",
+            "duration_seconds": 1.908,
+            "passed": true
+          }
+        ],
+        "browser_requested": true,
+        "environment": {
+          "mariadb": "10.11.19-MariaDB",
+          "transaction_isolation": "READ-COMMITTED",
+          "python": "3.12.14",
+          "redis_cache": "7.2.17",
+          "redis_queue": "7.2.17",
+          "postgresql": "17.11 (Debian 17.11-0+deb13u1)"
+        },
+        "browser": {
+          "kind": "orders",
+          "docstatus": 1,
+          "grand_total": "251.00",
+          "browser": "Chromium",
+          "transport": "настоящий HTTP",
+          "mocks": false,
+          "reloaded": true,
+          "relogged": true
+        },
+        "restore": {
+          "duration_seconds": 5.0,
+          "database_verified": true,
+          "verified_doctypes": 91,
+          "verified_encrypted_passwords": 1,
+          "public_files": 1,
+          "private_files": 3,
+          "attachments_verified": true,
+          "external_calls_disabled": true,
+          "scheduler_disabled": true,
+          "maintenance_mode": true,
+          "isolation": "new Frappe Site and new database on the same local MariaDB instance",
+          "application_versions": {
+            "frappe": {
+              "version": "15.126.0",
+              "commit": "53bae3ef2550ca96320f036f581446783cd11b72"
+            },
+            "erpnext": {
+              "version": "15.124.5",
+              "commit": "e5cde8c4b9e3f7f567a92ca3e65fd411402b89ce"
+            },
+            "erp_basic": {
+              "version": "0.4.0.dev0",
+              "commit": "b8a6a15a8fd438ad7b74e62b13327426320b22b0",
+              "source_sha256": "0d5f65026dee181e3b72c801af876fe8a6e65834aeeb4d1adecc2f22eac9ac1c"
+            }
+          }
+        },
+        "duration_seconds": 183.803
+      },
+      "backup": {
+        "bytes": 956142,
+        "duration_seconds": 1.355,
+        "ciphertext_sha256": "9210a1f32e24ffbd7b63fb4d1fe67876b8635ea14cd8dcae49848cacade2d1dd"
+      },
+      "scope": "Earlier full GitHub acceptance at 4ce4267, retained separately from final a132b44 acceptance.",
+      "source_sha256": "0d5f65026dee181e3b72c801af876fe8a6e65834aeeb4d1adecc2f22eac9ac1c"
+    },
+    "github_25c14c5": {
+      "scope": "Intermediate successful server acceptance at 25c14c5; the remaining JavaScript CodeQL issue was resolved by a132b44.",
+      "head_commit": "25c14c5a09333a20ced610664302ebbcd00ffa14",
+      "source_sha256": "83d986ce16980f31d814b2fe689cec78c30f569060dec10c0fa0f2c29bcc94ab",
+      "run_url": "https://github.com/DEATIN/ERPBasic/actions/runs/42140716246",
+      "job_id": 127640063679,
+      "conclusion": "success",
+      "artifact_url": "https://github.com/DEATIN/ERPBasic/actions/runs/42140716246/artifacts/13468297104",
+      "artifact_sha256": "d167d6c463086c15ad6574a48b3e0876e579c9600fa173bfa3ba8f0a651bf616",
+      "pipeline": {
+        "schema_version": 1,
+        "head_commit": "25c14c5a09333a20ced610664302ebbcd00ffa14",
+        "passed": true,
+        "duration_seconds": 215.177,
+        "environment": {
+          "mariadb": "10.11.19-MariaDB",
+          "transaction_isolation": "READ-COMMITTED",
+          "python": "3.12.14",
+          "redis_cache": "7.2.17",
+          "redis_queue": "7.2.17",
+          "postgresql": "17.11 (Debian 17.11-0+deb13u1)"
+        },
+        "checks": [
+          {
+            "name": "initial_company",
+            "duration_seconds": 5.395,
+            "passed": true
+          },
+          {
+            "name": "assets",
+            "duration_seconds": 15.362,
+            "passed": true
+          },
+          {
+            "name": "schema",
+            "duration_seconds": 4.401,
+            "passed": true
+          },
+          {
+            "name": "peer_schema",
+            "duration_seconds": 4.352,
+            "passed": true
+          },
+          {
+            "name": "business",
+            "duration_seconds": 13.856,
+            "passed": true
+          },
+          {
+            "name": "concurrency",
+            "duration_seconds": 13.295,
+            "passed": true
+          },
+          {
+            "name": "integration",
+            "duration_seconds": 7.256,
+            "passed": true
+          },
+          {
+            "name": "migration",
+            "duration_seconds": 2.626,
+            "passed": true
+          },
+          {
+            "name": "http",
+            "duration_seconds": 11.449,
+            "passed": true
+          },
+          {
+            "name": "tenant_prepare",
+            "duration_seconds": 5.531,
+            "passed": true
+          },
+          {
+            "name": "tenant_http",
+            "duration_seconds": 4.93,
+            "passed": true
+          },
+          {
+            "name": "browser_prepare",
+            "duration_seconds": 1.67,
+            "passed": true
+          },
+          {
+            "name": "browser_ui",
+            "duration_seconds": 4.01,
+            "passed": true
+          },
+          {
+            "name": "browser_database",
+            "duration_seconds": 1.495,
+            "passed": true
+          },
+          {
+            "name": "queue",
+            "duration_seconds": 2.108,
+            "passed": true
+          }
+        ],
+        "browser_requested": true,
+        "browser": {
+          "kind": "orders",
+          "docstatus": 1,
+          "grand_total": "251.00",
+          "browser": "Chromium",
+          "transport": "настоящий HTTP",
+          "mocks": false,
+          "reloaded": true,
+          "relogged": true,
+          "independent_database_verification_passed": true
+        },
+        "restore": {
+          "duration_seconds": 3.982,
+          "database_verified": true,
+          "verified_doctypes": 91,
+          "verified_encrypted_passwords": 1,
+          "public_files": 1,
+          "private_files": 3,
+          "attachments_verified": true,
+          "external_calls_disabled": true,
+          "scheduler_disabled": true,
+          "maintenance_mode": true,
+          "isolation": "new Frappe Site and new database on the same local MariaDB instance",
+          "application_versions": {
+            "frappe": {
+              "version": "15.126.0",
+              "commit": "53bae3ef2550ca96320f036f581446783cd11b72"
+            },
+            "erpnext": {
+              "version": "15.124.5",
+              "commit": "e5cde8c4b9e3f7f567a92ca3e65fd411402b89ce"
+            },
+            "erp_basic": {
+              "version": "0.4.0.dev0",
+              "commit": "e5762ab3ed2943993c00799f2f17262901e9e8d6",
+              "source_sha256": "83d986ce16980f31d814b2fe689cec78c30f569060dec10c0fa0f2c29bcc94ab"
+            }
+          }
+        }
+      }
+    }
+  },
+  "clientora": {
+    "report": "docs/clientora-exchange-verification.json",
+    "local_postgresql_version": "17.11",
+    "local_django_tests": {
+      "passed": true,
+      "total": 32,
+      "new_exchange": 13,
+      "existing_integration": 19
+    },
+    "local_live_exchange": {
+      "passed": true,
+      "checks": 6,
+      "duration_seconds": 6.708,
+      "real_http_servers": 2
+    },
+    "remote_ci": {
+      "provider": "Woodpecker",
+      "pull_request_url": "https://github.com/DEATIN/Clientora/pull/132",
+      "observed_at_utc": "2026-11-06T01:18:40Z",
+      "server_status": "running",
+      "other_gates_status": "pending",
+      "success_confirmed": false,
+      "postgresql_major": 18
+    }
+  },
+  "notes": [
+    "Final acceptance is the GitHub run at a132b44. Earlier local 4ce4267 and intermediate 25c14c5 results have their own commits and source digests in baselines.",
+    "Local Chromium execution is restricted in this executor. The local baseline explicitly records browser_requested=false; real Chromium and independent SQL verification passed in final GitHub CI.",
+    "Pipeline duration excludes dependency downloads and installation. Restore measures a new Site and database on the same prepared MariaDB instance, not full machine disaster recovery or a production RTO guarantee.",
+    "Artifact ZIP SHA-256, source digest and embedded versus separate restore/browser reports were verified. Sanitized evidence removes Site, Company and backup identifiers; the explicitly named browser document is synthetic test data.",
+    "Successful ERPBasic GitHub gates do not imply successful Clientora Woodpecker gates; the latter status is recorded separately with its observation time."
+  ]
+}

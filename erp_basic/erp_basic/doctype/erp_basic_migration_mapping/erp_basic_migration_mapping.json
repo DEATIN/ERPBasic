@@ -1,0 +1,17 @@
+{
+  "doctype": "DocType", "name": "ERP Basic Migration Mapping", "module": "ERP Basic", "autoname": "hash", "engine": "InnoDB",
+  "field_order": ["company", "migration_run", "source_id", "entity_kind", "external_id", "source_hash", "target_doctype", "target_name", "source_payload"],
+  "fields": [
+    {"fieldname": "company", "label": "Организация", "fieldtype": "Link", "options": "Company", "reqd": 1},
+    {"fieldname": "migration_run", "label": "Запуск миграции", "fieldtype": "Link", "options": "ERP Basic Migration Run", "reqd": 1},
+    {"fieldname": "source_id", "label": "Источник", "fieldtype": "Data", "reqd": 1},
+    {"fieldname": "entity_kind", "label": "Раздел источника", "fieldtype": "Data", "reqd": 1},
+    {"fieldname": "external_id", "label": "Старый идентификатор", "fieldtype": "Data", "reqd": 1},
+    {"fieldname": "source_hash", "label": "Хеш записи", "fieldtype": "Data", "reqd": 1},
+    {"fieldname": "target_doctype", "label": "Тип нового документа", "fieldtype": "Data"},
+    {"fieldname": "target_name", "label": "Новый документ", "fieldtype": "Data"},
+    {"fieldname": "source_payload", "label": "Исходная запись", "fieldtype": "Long Text", "reqd": 1}
+  ],
+  "permissions": [{"role": "System Manager", "read": 1, "create": 1}],
+  "sort_field": "creation", "sort_order": "DESC", "allow_rename": 0
+}

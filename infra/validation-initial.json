@@ -1,0 +1,89 @@
+{
+  "scope": "Local compatibility run on a clean Site; the GitHub workflow has not run yet",
+  "environment": {
+    "mariadb": "10.11.19-MariaDB",
+    "transaction_isolation": "READ-COMMITTED",
+    "python": "3.12.14",
+    "redis_cache": "7.2.17",
+    "redis_queue": "7.2.17",
+    "postgresql": "17.11 (Debian 17.11-0+deb13u1)"
+  },
+  "pipeline": {
+    "passed": true,
+    "checks": [
+      {
+        "name": "assets",
+        "duration_seconds": 17.473,
+        "passed": true
+      },
+      {
+        "name": "schema",
+        "duration_seconds": 4.993,
+        "passed": true
+      },
+      {
+        "name": "business",
+        "duration_seconds": 16.547,
+        "passed": true
+      },
+      {
+        "name": "concurrency",
+        "duration_seconds": 14.044,
+        "passed": true
+      },
+      {
+        "name": "migration",
+        "duration_seconds": 2.911,
+        "passed": true
+      },
+      {
+        "name": "http",
+        "duration_seconds": 11.8,
+        "passed": true
+      },
+      {
+        "name": "queue",
+        "duration_seconds": 1.458,
+        "passed": true
+      }
+    ],
+    "restore": {
+      "backup_id": "20261105T233304Z-2f68e32b",
+      "site": "restore-19d22a0886088911.localhost",
+      "source_site": "ci.erp-basic.localhost",
+      "duration_seconds": 7.506,
+      "database_verified": true,
+      "verified_doctypes": 91,
+      "verified_encrypted_passwords": 1,
+      "public_files": 1,
+      "private_files": 2,
+      "attachments_verified": true,
+      "external_calls_disabled": true,
+      "scheduler_disabled": true,
+      "maintenance_mode": true,
+      "isolation": "new Frappe Site and new database on the same local MariaDB instance",
+      "application_versions": {
+        "frappe": {
+          "version": "15.126.0",
+          "commit": "53bae3ef2550ca96320f036f581446783cd11b72"
+        },
+        "erpnext": {
+          "version": "15.124.5",
+          "commit": "e5cde8c4b9e3f7f567a92ca3e65fd411402b89ce"
+        },
+        "erp_basic": {
+          "version": "0.4.0.dev0",
+          "commit": "6b0af4dec4d348a58197ca70a48f7e2ef5a2244f",
+          "source_sha256": "8d712b4b3e09f832e4da218c3cec19b22c6151de4575c502720f045afe3941cd"
+        }
+      }
+    },
+    "duration_seconds": 148.664
+  },
+  "bootstrap_seconds": 10.14,
+  "notes": [
+    "Cached source/download artifacts were reused and verified against pins/checksums. Python environment and all test databases were newly created.",
+    "The 8 integration acceptance checks and additional HTTP cases were added to the CI runner after this initial run; the final run supersedes this record.",
+    "Restore time is for a new Site and database on the same MariaDB instance, not full machine recovery."
+  ]
+}

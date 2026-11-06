@@ -1,0 +1,151 @@
+{
+  "doctype": "DocType",
+  "name": "ERP Basic Inbox",
+  "module": "ERP Basic",
+  "custom": 0,
+  "engine": "InnoDB",
+  "track_changes": 0,
+  "allow_rename": 0,
+  "autoname": "hash",
+  "field_order": [
+    "company",
+    "connector",
+    "message_id",
+    "object_type",
+    "object_id",
+    "object_version",
+    "payload_hash",
+    "payload",
+    "status",
+    "attempts",
+    "last_error",
+    "error_message",
+    "result",
+    "correlation_id",
+    "causation_id",
+    "erp_doctype",
+    "erp_name",
+    "processed_at"
+  ],
+  "fields": [
+    {
+      "fieldname": "company",
+      "label": "Организация",
+      "fieldtype": "Link",
+      "options": "Company",
+      "reqd": 1,
+      "in_list_view": 1,
+      "search_index": 1
+    },
+    {
+      "fieldname": "connector",
+      "label": "Подключение",
+      "fieldtype": "Link",
+      "options": "ERP Basic Connector",
+      "reqd": 1,
+      "search_index": 1
+    },
+    {
+      "fieldname": "message_id",
+      "label": "UUID сообщения",
+      "fieldtype": "Data",
+      "reqd": 1
+    },
+    {
+      "fieldname": "object_type",
+      "label": "Тип объекта",
+      "fieldtype": "Data"
+    },
+    {
+      "fieldname": "object_id",
+      "label": "UUID внешнего объекта",
+      "fieldtype": "Data"
+    },
+    {
+      "fieldname": "object_version",
+      "label": "Версия объекта",
+      "fieldtype": "Int"
+    },
+    {
+      "fieldname": "payload_hash",
+      "label": "Хеш сообщения",
+      "fieldtype": "Data",
+      "reqd": 1
+    },
+    {
+      "fieldname": "payload",
+      "label": "Сообщение",
+      "fieldtype": "Long Text",
+      "reqd": 1,
+      "read_only": 1
+    },
+    {
+      "fieldname": "status",
+      "label": "Состояние",
+      "fieldtype": "Select",
+      "options": "Pending\nApplied\nStale\nNeeds Mapping\nConflict\nRejected",
+      "default": "Pending",
+      "in_list_view": 1,
+      "search_index": 1
+    },
+    {
+      "fieldname": "attempts",
+      "label": "Попытки",
+      "fieldtype": "Int",
+      "default": "0"
+    },
+    {
+      "fieldname": "last_error",
+      "label": "Код ошибки",
+      "fieldtype": "Data"
+    },
+    {
+      "fieldname": "error_message",
+      "label": "Причина и действие",
+      "fieldtype": "Small Text"
+    },
+    {
+      "fieldname": "result",
+      "label": "Результат",
+      "fieldtype": "Long Text"
+    },
+    {
+      "fieldname": "correlation_id",
+      "label": "UUID цепочки событий",
+      "fieldtype": "Data"
+    },
+    {
+      "fieldname": "causation_id",
+      "label": "UUID исходного события",
+      "fieldtype": "Data"
+    },
+    {
+      "fieldname": "erp_doctype",
+      "label": "Тип документа ERP",
+      "fieldtype": "Link",
+      "options": "DocType"
+    },
+    {
+      "fieldname": "erp_name",
+      "label": "Документ ERP",
+      "fieldtype": "Dynamic Link",
+      "options": "erp_doctype",
+      "search_index": 1
+    },
+    {
+      "fieldname": "processed_at",
+      "label": "Время обработки",
+      "fieldtype": "Datetime"
+    }
+  ],
+  "permissions": [
+    {
+      "role": "System Manager",
+      "read": 1,
+      "report": 1
+    }
+  ],
+  "sort_field": "modified",
+  "sort_order": "DESC",
+  "states": []
+}

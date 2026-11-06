@@ -1,0 +1,85 @@
+name: Сервер ERP Basic — MariaDB и восстановление
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: erp-basic-server-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  server:
+    name: ERPNext, конкурентные операции, HTTP и restore
+    runs-on: ubuntu-24.04
+    container: debian:13.1-slim
+    timeout-minutes: 40
+    env:
+      CI: '1'
+      UV_LINK_MODE: copy
+    steps:
+      - name: Системные библиотеки отдельного CI контейнера
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends ca-certificates git curl build-essential pkg-config python3 python3-venv libffi-dev libssl-dev libpango-1.0-0 libpangoft2-1.0-0 libharfbuzz-subset0 libjpeg62-turbo libcap2 libsystemd0 libxml2 libxslt1.1 libedit2 libz3-4 libreadline8t64 file gzip tar util-linux
+          useradd --create-home erp-ci
+      - name: Получить исходники
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Python 3.12.14 для Debian через закреплённый uv
+        shell: bash
+        run: |
+          python3 -m venv /opt/erp-basic-bootstrap
+          /opt/erp-basic-bootstrap/bin/python -m pip install --require-hashes -r infra/uv-bootstrap.lock
+          /opt/erp-basic-bootstrap/bin/uv python install --install-dir /opt/erp-basic-python --no-bin 3.12.14
+          /opt/erp-basic-python/cpython-3.12.14-linux-x86_64-gnu/bin/python3.12 --version
+          echo "/opt/erp-basic-bootstrap/bin" >> "$GITHUB_PATH"
+          echo "ERP_BASIC_PYTHON=/opt/erp-basic-python/cpython-3.12.14-linux-x86_64-gnu/bin/python3.12" >> "$GITHUB_ENV"
+      - name: Node 24.22.1
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
+        with:
+          node-version: '24.22.1'
+      - name: Подготовить изолированную рабочую директорию
+        run: |
+          PLAYWRIGHT_BROWSERS_PATH="$RUNNER_TEMP/erp-basic-browsers"
+          echo "NODE_PATH=$RUNNER_TEMP/erp-basic-browser/node_modules" >> "$GITHUB_ENV"
+          echo "PLAYWRIGHT_BROWSERS_PATH=$PLAYWRIGHT_BROWSERS_PATH" >> "$GITHUB_ENV"
+          mkdir -p "$RUNNER_TEMP/erp-basic-runtime" "$RUNNER_TEMP/erp-basic-browser" "$PLAYWRIGHT_BROWSERS_PATH"
+          cp infra/browser/package.json infra/browser/package-lock.json "$RUNNER_TEMP/erp-basic-browser/"
+          chown -R erp-ci:erp-ci "$GITHUB_WORKSPACE" "$RUNNER_TEMP/erp-basic-runtime" "$RUNNER_TEMP/erp-basic-browser" "$PLAYWRIGHT_BROWSERS_PATH"
+          echo '127.0.0.1 ci.erp-basic.localhost erp-basic-tenant.localhost' >> /etc/hosts
+      - name: Playwright 1.62.1 и настоящий Chromium
+        shell: bash
+        run: |
+          runuser -u erp-ci -- npm ci --prefix "$RUNNER_TEMP/erp-basic-browser" --ignore-scripts --no-audit --no-fund
+          node "$RUNNER_TEMP/erp-basic-browser/node_modules/playwright/cli.js" install-deps chromium
+          runuser -u erp-ci -- node "$RUNNER_TEMP/erp-basic-browser/node_modules/playwright/cli.js" install chromium
+      - name: Установить зависимости по версиям и checksum
+        shell: bash
+        run: |
+          runuser -u erp-ci -- "$ERP_BASIC_PYTHON" "инструменты/сервер/окружение.py" --root "$RUNNER_TEMP/erp-basic-runtime" bootstrap --python "$ERP_BASIC_PYTHON"
+      - name: Проверить реальный сервер и восстановление
+        shell: bash
+        run: |
+          runuser -u erp-ci -- "$RUNNER_TEMP/erp-basic-runtime/bench/env/bin/python" "инструменты/сервер/ci.py" --root "$RUNNER_TEMP/erp-basic-runtime" --browser-tests
+      - name: Краткий результат
+        if: always()
+        shell: bash
+        run: |
+          if [ -f "$RUNNER_TEMP/erp-basic-runtime/reports/server-ci.json" ]; then
+            cat "$RUNNER_TEMP/erp-basic-runtime/reports/server-ci.json" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "Полный серверный прогон не завершился; подробности находятся в выводе упавшего шага." >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - name: Отчёты и снимки живого интерфейса
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: erp-basic-server-verification
+          path: ${{ runner.temp }}/erp-basic-runtime/reports/
+          if-no-files-found: ignore
+          retention-days: 14

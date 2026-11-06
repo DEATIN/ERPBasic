@@ -1,0 +1,16 @@
+{
+  "profile": "self-host planning template; scheduling and off-host storage require operator configuration",
+  "timezone": "UTC",
+  "full_backup_cron": "0 * * * *",
+  "quiesce_writes_and_workers": true,
+  "retain_hourly": 48,
+  "retain_daily": 14,
+  "retain_weekly": 8,
+  "off_host_copy_required": true,
+  "separate_key_store_required": true,
+  "weekly_restore_drill_required": true,
+  "rpo_target_seconds": 3600,
+  "rto_target_seconds": 1800,
+  "sla_verified": false,
+  "automatic_pruning_enabled": false
+}
