@@ -281,7 +281,7 @@
     if (state.doc.return_against) references.set(`return:${state.doc.return_against}`, { kind: state.kind, name: state.doc.return_against });
     const nativeKinds = { 'Sales Invoice': 'invoices', 'Sales Order': 'orders', 'Purchase Invoice': 'purchaseInvoices', 'Purchase Order': 'purchaseOrders' };
     for (const row of state.doc.references || []) if (nativeKinds[row.reference_doctype] && capability(nativeKinds[row.reference_doctype], 'read')) references.set(`payment:${row.reference_name}`, { kind: nativeKinds[row.reference_doctype], name: row.reference_name });
-    return references.size ? `<section class="form-section"><h2>Документы-основания</h2><div class="actions">${Array.from(references.values()).map(row => `<a class="btn outline" href="/erp?kind=${encodeURIComponent(row.kind)}&name=${encodeURIComponent(row.name)}" data-linked-kind="${row.kind}" data-linked-name="${esc(row.name)}">${esc(row.name)}</a>`).join('')}</div></section>` : '';
+    return references.size ? `<section class="form-section"><h2>Документы-основания</h2><div class="actions">${Array.from(references.values()).map(row => `<a class="btn outline" href="/erp?kind=${encodeURIComponent(row.kind)}&name=${encodeURIComponent(row.name)}" data-linked-kind="${esc(row.kind)}" data-linked-name="${esc(row.name)}">${esc(row.name)}</a>`).join('')}</div></section>` : '';
   }
   function collectDocument() {
     const spec = specs[state.kind]; const doc = {};
