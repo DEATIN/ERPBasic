@@ -50,6 +50,23 @@ def _prepare(credentials_path):
         credentials[role] = {"user": email, "password": password}
     item = fixtures.item(prefix="HTTP", stock=False).name
     env["item"] = item
+    env["pack_uom"] = "ERP Basic HTTP Pack"
+    for unit in (env["pack_uom"], "Kg"):
+        if not frappe.db.exists("UOM", unit):
+            frappe.get_doc({"doctype": "UOM", "uom_name": unit}).insert()
+    packed_item = fixtures.item(prefix="HTTP-PACK", stock=False)
+    packed_item.description = "Упаковка для проверки смены номенклатуры через HTTP"
+    packed_item.append("uoms", {"uom": env["pack_uom"], "conversion_factor": 5})
+    packed_item.sales_uom = env["pack_uom"]
+    packed_item.save()
+    env["packed_item"] = packed_item.name
+    weight_name = "HTTP-KG-" + secrets.token_hex(5)
+    weighted_item = frappe.get_doc({"doctype": "Item", "item_code": weight_name, "item_name": weight_name,
+                                   "description": "Весовая номенклатура для проверки HTTP",
+                                   "item_group": "ERP Basic Test", "stock_uom": "Kg", "is_stock_item": 0,
+                                   "is_sales_item": 1, "is_purchase_item": 1}).insert()
+    env["weighted_item"] = weighted_item.name
+    env["weighted_description"] = weighted_item.description
     order = commands.save_document("orders", env["company"], {
         "customer": env["customer"], "transaction_date": nowdate(), "delivery_date": nowdate(),
         "selling_price_list": "ERP Basic Selling",
@@ -218,6 +235,51 @@ class TestHTTP(unittest.TestCase):
         self.assertEqual(found_again["document"]["name"], first["document"]["name"])
         frappe.db.rollback()
         self.assertEqual(frappe.db.get_value("Sales Order", first["document"]["name"], "docstatus"), 1)
+
+    def test_ручной_выбор_товара_и_единицы_пересчитывает_native_количество(self):
+        client = self.client()
+        values = self.values()
+        values["items"] = [{"item_code": self.env["packed_item"], "qty": "2", "rate": "125.50",
+                            "uom": None, "conversion_factor": None}]
+        saved = self.message(client.call("save_document", verb="POST", values={
+            "kind": "orders", "company": self.env["company"], "document": values, "idempotency_key": _key(),
+        }))["document"]
+        row = saved["items"][0]
+        self.assertEqual(row["uom"], self.env["pack_uom"], "Единицу продаж выбирает native Item, а не браузер")
+        self.assertEqual(float(row["conversion_factor"]), 5)
+        self.assertEqual(float(row["stock_qty"]), 10)
+        # Смена единицы той же сохранённой строки не сохраняет прежний коэффициент 5.
+        updated = self.message(client.call("save_document", verb="POST", values={
+            "kind": "orders", "company": self.env["company"], "expected_modified": saved["modified"],
+            "document": {"name": saved["name"], "items": [{"name": row["name"], "item_code": self.env["packed_item"],
+                          "qty": "2", "rate": "125.50", "uom": "Nos", "conversion_factor": None}]},
+            "idempotency_key": _key(),
+        }))["document"]
+        self.assertEqual(float(updated["items"][0]["conversion_factor"]), 1)
+        self.assertEqual(float(updated["items"][0]["stock_qty"]), 2)
+        # Возвращаем упаковку, затем меняем номенклатуру с иной складской единицей.
+        packed = self.message(client.call("save_document", verb="POST", values={
+            "kind": "orders", "company": self.env["company"], "expected_modified": updated["modified"],
+            "document": {"name": saved["name"], "items": [{"name": row["name"], "item_code": self.env["packed_item"],
+                          "qty": "2", "rate": "125.50", "uom": self.env["pack_uom"], "conversion_factor": None}]},
+            "idempotency_key": _key(),
+        }))["document"]
+        self.assertEqual(float(packed["items"][0]["conversion_factor"]), 5)
+        changed = self.message(client.call("save_document", verb="POST", values={
+            "kind": "orders", "company": self.env["company"], "expected_modified": packed["modified"],
+            "document": {"name": saved["name"], "items": [{"name": row["name"], "item_code": self.env["weighted_item"],
+                          "qty": "2", "rate": "125.50", "uom": None, "conversion_factor": None}]},
+            "idempotency_key": _key(),
+        }))["document"]
+        self.assertEqual(changed["items"][0]["uom"], "Kg")
+        self.assertEqual(float(changed["items"][0]["conversion_factor"]), 1)
+        self.assertEqual(float(changed["items"][0]["stock_qty"]), 2)
+        frappe.db.rollback()
+        native = frappe.get_doc("Sales Order", saved["name"])
+        self.assertEqual(native.items[0].stock_uom, "Kg")
+        self.assertEqual(native.items[0].stock_qty, 2)
+        self.assertEqual(native.items[0].item_name, self.env["weighted_item"])
+        self.assertEqual(native.items[0].description, self.env["weighted_description"])
 
     def test_чужая_организация_недоступна_через_api_resource_и_отчёт(self):
         other = self.client("other")

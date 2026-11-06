@@ -26,8 +26,12 @@ def checked_document(kind, name, company, action="read", *, for_update=False):
 
 
 def capabilities(doctype, doc=None):
-    return {action: bool(frappe.has_permission(doctype, action, doc=doc))
-            for action in ("read", "create", "write", "submit", "cancel", "export", "import")}
+    permissions = {action: bool(frappe.has_permission(doctype, action, doc=doc))
+                   for action in ("read", "create", "write", "submit", "cancel", "export", "import")}
+    if not access.is_administrator() and "ERP Basic Integration" in frappe.get_roles():
+        # Метаданные UI отражают шлюз HTTP; native права нужны внутреннему обработчику inbox.
+        permissions.update({action: False for action in ("create", "write", "submit", "cancel", "import")})
+    return permissions
 
 
 def _value(doc, field):
@@ -116,6 +120,12 @@ def _apply(kind, doc, payload):
             seen.add(row.get("name"))
             # Сохраняем native связи, налоги и измерения, не показанные упрощённой формой.
             preserved = existing[row["name"]].as_dict() if row.get("name") else {}
+            if preserved and row.get("item_code") and row["item_code"] != preserved.get("item_code"):
+                # Подпись прежнего товара не должна пережить смену номенклатуры.
+                # None позволяет штатному get_item_details заполнить сведения нового Item.
+                for field in ("item_name", "description"):
+                    if child_meta.has_field(field):
+                        preserved[field] = None
             values = {**preserved, **row}
             if kind == "receipts" and "qty" in row:
                 # Штатная buying validation пересчитает Received = Accepted + Rejected.

@@ -36,7 +36,7 @@
   "fields": [
     {
       "fieldname": "company",
-      "label": "Company",
+      "label": "Организация",
       "fieldtype": "Link",
       "options": "Company",
       "reqd": 1,
@@ -45,7 +45,7 @@
     },
     {
       "fieldname": "connector",
-      "label": "Connector",
+      "label": "Подключение",
       "fieldtype": "Link",
       "options": "ERP Basic Connector",
       "reqd": 1,
@@ -53,41 +53,41 @@
     },
     {
       "fieldname": "message_id",
-      "label": "Message UUID",
+      "label": "UUID сообщения",
       "fieldtype": "Data",
       "reqd": 1
     },
     {
       "fieldname": "object_type",
-      "label": "Object type",
+      "label": "Тип объекта",
       "fieldtype": "Data"
     },
     {
       "fieldname": "object_id",
-      "label": "External UUID",
+      "label": "UUID внешнего объекта",
       "fieldtype": "Data"
     },
     {
       "fieldname": "object_version",
-      "label": "Object version",
+      "label": "Версия объекта",
       "fieldtype": "Int"
     },
     {
       "fieldname": "payload_hash",
-      "label": "Envelope fingerprint",
+      "label": "Хеш сообщения",
       "fieldtype": "Data",
       "reqd": 1
     },
     {
       "fieldname": "payload",
-      "label": "Envelope",
+      "label": "Сообщение",
       "fieldtype": "Long Text",
       "reqd": 1,
       "read_only": 1
     },
     {
       "fieldname": "status",
-      "label": "State",
+      "label": "Состояние",
       "fieldtype": "Select",
       "options": "Pending\nSending\nRetry\nSent\nNeeds Mapping\nConflict\nDead Letter\nPaused",
       "default": "Pending",
@@ -96,85 +96,85 @@
     },
     {
       "fieldname": "attempts",
-      "label": "Attempts",
+      "label": "Попытки",
       "fieldtype": "Int",
       "default": "0"
     },
     {
       "fieldname": "last_error",
-      "label": "Error code",
+      "label": "Код ошибки",
       "fieldtype": "Data"
     },
     {
       "fieldname": "error_message",
-      "label": "Actionable error",
+      "label": "Причина и действие",
       "fieldtype": "Small Text"
     },
     {
       "fieldname": "result",
-      "label": "Result",
+      "label": "Результат",
       "fieldtype": "Long Text"
     },
     {
       "fieldname": "correlation_id",
-      "label": "Correlation UUID",
+      "label": "UUID цепочки событий",
       "fieldtype": "Data"
     },
     {
       "fieldname": "causation_id",
-      "label": "Causation UUID",
+      "label": "UUID исходного события",
       "fieldtype": "Data"
     },
     {
       "fieldname": "erp_doctype",
-      "label": "ERP DocType",
+      "label": "Тип документа ERP",
       "fieldtype": "Link",
       "options": "DocType"
     },
     {
       "fieldname": "erp_name",
-      "label": "ERP document",
+      "label": "Документ ERP",
       "fieldtype": "Dynamic Link",
       "options": "erp_doctype",
       "search_index": 1
     },
     {
       "fieldname": "event_key",
-      "label": "Event fingerprint",
+      "label": "Хеш события",
       "fieldtype": "Data",
       "unique": 1
     },
     {
       "fieldname": "next_attempt_at",
-      "label": "Next attempt",
+      "label": "Следующая попытка",
       "fieldtype": "Datetime",
       "search_index": 1
     },
     {
       "fieldname": "lease_token",
-      "label": "Worker lease",
+      "label": "Идентификатор обработки",
       "fieldtype": "Data"
     },
     {
       "fieldname": "lease_until",
-      "label": "Lease expiry",
+      "label": "Срок обработки",
       "fieldtype": "Datetime"
     },
     {
       "fieldname": "delivered_at",
-      "label": "Acknowledged at",
+      "label": "Время подтверждения",
       "fieldtype": "Datetime"
     },
     {
       "fieldname": "cycle_attempts",
-      "label": "Attempts since manual retry",
+      "label": "Попытки после ручного повтора",
       "fieldtype": "Int",
       "default": "0",
       "read_only": 1
     },
     {
       "fieldname": "retry_count",
-      "label": "Manual retries",
+      "label": "Ручные повторы",
       "fieldtype": "Int",
       "default": "0",
       "read_only": 1

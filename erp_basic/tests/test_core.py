@@ -126,6 +126,8 @@ class TestCore(unittest.TestCase):
         service = fixtures.make_user("restricted.exchange@example.invalid",
                                      ["ERP Basic Integration", "Sales User"], [self.company])
         frappe.set_user(service)
+        self.assertFalse(commands.capabilities("Sales Order")["create"])
+        self.assertFalse(commands.capabilities("Sales Order")["submit"])
         with self.assertRaises(frappe.PermissionError):
             self.submit(order)
         frappe.set_user("Administrator")

@@ -1,8 +1,9 @@
-"""Durable, company-scoped Clientora exchange over native ERPNext documents.
+"""Надёжный обмен Clientora с документами ERPNext в пределах одной Company.
 
-Only the transport journal uses SQL. Business documents are saved by commands and
-the standard controllers, with the current user's permissions. Workers, never
-document hooks, perform network I/O. See docs/server-integration.md.
+SQL применяется только к журналу транспорта. Учётные документы сохраняются
+через команды и стандартные контроллеры с текущими правами пользователя.
+Сетевые запросы выполняют отдельные обработчики очереди.
+Описание контракта: docs/clientora-integration.md.
 """
 
 import hashlib
@@ -27,17 +28,18 @@ NAMESPACE = uuid.UUID("b773c49e-6dce-4d84-8916-bbf3708ca0e3")
 MAX_MESSAGE_BYTES = 200_000
 MAX_ATTEMPTS = 8
 MAPPING_TYPES = {"customer": "Customer", "offering": "Item", "order": "Sales Order"}
+NATIVE_EVENTS = {"Sales Order", "Delivery Note", "Sales Invoice", "Payment Entry"}
 
 
 def document_event(doc, event=None):
-    """Installation-safe entry point; the full event implementation follows below."""
+    """Обработчик события отключён на время установки и миграции Site."""
     if frappe.flags.in_install or frappe.flags.in_migrate:
         return
     return _document_event(doc, event)
 
 
 def dispatch_pending(limit=20):
-    """Scheduler entry point. Installing/restoring a site never sends anything."""
+    """Задание планировщика учитывает установку и запрет обмена при восстановлении."""
     if frappe.flags.in_install or frappe.flags.in_migrate or frappe.conf.get("erp_basic_disable_external_calls"):
         return {"paused": True, "processed": 0}
     return _dispatch_pending(limit)
@@ -142,7 +144,7 @@ def _endpoint(value):
 
 
 def _document_event(doc, event=None):
-    if getattr(frappe.local, "erp_basic_incoming_exchange", None) or not doc.get("company"):
+    if doc.doctype not in NATIVE_EVENTS or getattr(frappe.local, "erp_basic_incoming_exchange", None) or not doc.get("company"):
         return
     if not frappe.db.table_exists(CONNECTOR):
         return
@@ -176,6 +178,10 @@ def _document_event(doc, event=None):
         connector = frappe.get_doc(CONNECTOR, row.connector)
         mapping = _locked_mapping(row.name)
         _queue_document(connector, mapping, doc)
+        if doc.doctype != "Sales Order":
+            order = frappe.get_doc("Sales Order", mapping.erp_name)
+            if order.company == connector.company:
+                _queue_document(connector, mapping, order)
 
 
 def _dispatch_pending(limit=20):
@@ -194,8 +200,8 @@ def _dispatch_pending(limit=20):
         claim = _claim_delivery(name)
         if not claim:
             continue
-        # Claim is durable before the network call. A crash at either boundary
-        # causes redelivery of the same UUID; the receiver's inbox deduplicates it.
+        # Резервирование зафиксировано до HTTP. Сбой на любой границе приводит
+        # к повтору того же UUID, который распознаёт входящий журнал получателя.
         frappe.db.commit()
         connector = frappe.get_doc(CONNECTOR, claim.connector)
         if frappe.conf.get("erp_basic_disable_external_calls") or not connector.enabled or not connector.outbound_enabled:
@@ -239,9 +245,9 @@ def _message_name(connector, message_id):
 
 
 def _insert(table, name, values):
-    """Private journal writes, never a path for changing ERPNext documents."""
+    """Внутренняя запись журнала; учётные документы этим путём не изменяются."""
     if table not in {INBOX, OUTBOX, MAPPING}:
-        raise ValueError("Unsupported transport table")
+        raise ValueError("Неподдерживаемая таблица журнала обмена")
     now = now_datetime()
     data = {"name": name, "creation": now, "modified": now, "owner": frappe.session.user,
             "modified_by": frappe.session.user, "docstatus": 0, "idx": 0, **values}
@@ -256,7 +262,7 @@ def _insert(table, name, values):
 
 def _update(table, name, values, lease=None):
     if table not in {INBOX, OUTBOX, MAPPING}:
-        raise ValueError("Unsupported transport table")
+        raise ValueError("Неподдерживаемая таблица журнала обмена")
     values = {**values, "modified": now_datetime(), "modified_by": frappe.session.user}
     assignments = ",".join("`" + key + "`=%s" for key in values)
     condition = " AND lease_token=%s AND status='Sending'" if lease is not None else ""
@@ -385,9 +391,18 @@ def _set_http_status(code):
         frappe.local.response["http_status_code"] = code
 
 
+def _read_order(connector, name):
+    """Каждый повтор использует текущие права на конкретный учётный документ."""
+    native = frappe.get_doc("Sales Order", name)
+    native.check_permission("read")
+    if native.company != connector.company:
+        frappe.throw("Документ относится к другому контуру.", frappe.PermissionError)
+    return native
+
+
 @frappe.whitelist(methods=["POST"])
 def receive(envelope):
-    """Frappe API request body is {\"envelope\": <versioned message>}."""
+    """Тело API-запроса Frappe: {\"envelope\": <сообщение с версией>}."""
     require_user()
     if isinstance(envelope, str):
         try:
@@ -418,10 +433,13 @@ def _process_incoming(connector, envelope):
     if inbox.status in {"Applied", "Stale"}:
         answer = json.loads(inbox.result)
         if answer.get("erp_name"):
-            native = frappe.get_doc(answer["erp_doctype"], answer["erp_name"])
-            native.check_permission("read")
-            if native.company != connector.company:
+            if answer.get("erp_doctype") != "Sales Order" or answer.get("company") != connector.company:
                 frappe.throw("Документ относится к другому контуру.", frappe.PermissionError)
+            _read_order(connector, answer["erp_name"])
+        else:
+            native_name = frappe.db.get_value(MAPPING, mapping_name(connector.name, "order", envelope["object_id"]), "erp_name")
+            if native_name:
+                _read_order(connector, native_name)
         return answer
     _update(INBOX, name, {"attempts": (inbox.attempts or 0) + 1})
     mapping_id = mapping_name(connector.name, "order", envelope["object_id"])
@@ -429,16 +447,18 @@ def _process_incoming(connector, envelope):
                          (mapping_id,), pluck=True)
     known_native = known[0] if known else ""
     if known_native:
-        # Native saves lock the business document before their hooks lock the
-        # mapping. Follow that order so an incoming draft update cannot deadlock
-        # with an employee's concurrent save/submit.
+        # Стандартное сохранение сначала блокирует учётный документ, затем
+        # соответствие из обработчика события. Такой же порядок исключает
+        # взаимную блокировку с параллельным сохранением или проведением.
         frappe.db.sql("SELECT name FROM `tabSales Order` WHERE name=%s AND company=%s FOR UPDATE",
                       (known_native, connector.company))
     mapping = _ensure_order_mapping(connector, envelope["object_id"])
     if (mapping.erp_name or "") != (known_native or ""):
-        # A first import committed while we waited for the mapping reservation.
-        # Roll back this whole request and retry with the now-known native lock.
+        # Пока ожидали соответствие, завершился первый импорт. Полный повтор
+        # запроса возьмёт блокировку уже известного учётного документа.
         frappe.throw("Первичная обработка заказа завершилась параллельно. Повторите сообщение.", ExchangeBusy)
+    if mapping.erp_name:
+        _read_order(connector, mapping.erp_name)
     object_hash = _digest({key: envelope[key] for key in ("event_type", "object_type", "object_id", "object_version", "payload")})
     if envelope["object_version"] < mapping.remote_version:
         return _finish_inbox(name, envelope, "Stale", {"reason": "newer_version_already_applied",
@@ -528,7 +548,11 @@ def _fail_inbox(name, envelope, error):
 
 
 def _queue_document(connector, mapping, doc, correlation_id=None, causation_id=None, force_key=None):
-    event_key = _digest([connector.name, mapping.name, doc.doctype, doc.name, str(doc.modified), doc.docstatus, force_key])
+    changed = {field: str(doc.get(field)) for field in (
+        "status", "currency", "grand_total", "outstanding_amount", "paid_amount", "received_amount",
+        "per_delivered", "per_billed") if doc.get(field) is not None}
+    event_key = _digest([connector.name, mapping.name, doc.doctype, doc.name, str(doc.modified),
+                         doc.docstatus, changed, force_key])
     if frappe.db.exists(OUTBOX, {"event_key": event_key}):
         return
     version = (mapping.local_version or 0) + 1
@@ -587,6 +611,9 @@ def _deliver(connector, envelope):
     import requests
 
     try:
+        if not _outgoing_access(connector, envelope):
+            return ("Dead Letter", "access_revoked",
+                    "Отправка остановлена: проверьте активность служебного пользователя, его роль, Company и право чтения документа.", {})
         _endpoint(connector.endpoint)
         secret = connector.get_password("remote_token", raise_exception=False)
         if not secret:
@@ -623,6 +650,21 @@ def _deliver(connector, envelope):
         return "Dead Letter", "invalid_endpoint", "Проверьте разрешённый адрес подключения.", {}
 
 
+def _outgoing_access(connector, envelope):
+    """Сохранённое сообщение не обходит отозванные права фоновой интеграции."""
+    try:
+        _validate_service_user(connector)
+        payload = envelope.get("payload", {})
+        if (envelope.get("source") != "erp_basic" or envelope.get("source_tenant") != connector.local_tenant
+                or payload.get("company") != connector.company or payload.get("erp_doctype") not in NATIVE_EVENTS):
+            return False
+        native = frappe.get_doc(payload["erp_doctype"], payload["erp_name"])
+        return native.company == connector.company and bool(frappe.has_permission(
+            native.doctype, "read", doc=native, user=connector.integration_user))
+    except (frappe.ValidationError, frappe.PermissionError, frappe.DoesNotExistError, KeyError):
+        return False
+
+
 def _management_connector(company, connector):
     require_company(company)
     item = frappe.get_doc(CONNECTOR, connector)
@@ -637,8 +679,11 @@ def _management_connector(company, connector):
 @frappe.whitelist(methods=["GET"])
 def journal(company, connector=None, start=0, page_length=50, limit=None):
     require_company(company)
-    limit = max(1, min(int(limit if limit is not None else page_length), 100))
-    start = max(0, min(int(start), 100_000))
+    try:
+        limit = max(1, min(int(limit if limit is not None else page_length), 100))
+        start = max(0, min(int(start), 100_000))
+    except (TypeError, ValueError):
+        frappe.throw("Параметры страницы журнала должны быть целыми числами.")
     if connector:
         _management_connector(company, connector)
         names = [connector]
@@ -794,7 +839,7 @@ def resolve_conflict(company, name, decision, expected_modified, reason):
 
 @frappe.whitelist(methods=["POST"])
 def reconcile(company, connector, idempotency_key, after="", limit=50):
-    """Bounded resnapshot, queued for normal delivery. Does not rewrite accounting."""
+    """Повторная сверка снимков через очередь без изменения учётных документов."""
     item = _management_connector(company, connector)
     limit = max(1, min(int(limit), 100))
     from erp_basic.idempotency import run

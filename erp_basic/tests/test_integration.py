@@ -1,15 +1,18 @@
-"""Native ERPNext integration acceptance checks on an isolated MariaDB Site.
+"""Проверки интеграции ERPNext на изолированном Site с MariaDB.
 
-Run with bench --site <test-site> execute erp_basic.tests.test_integration.run.
-No HTTP provider is mocked here; the two-server delivery scenario is a separate
-reproducible runner described in docs/server-integration.md.
+Запуск: bench --site <test-site> execute erp_basic.tests.test_integration.run.
+Сценарий обмена двух настоящих серверов запускается отдельно;
+инструкции находятся в docs/clientora-integration.md.
 """
 
 import copy
 import json
+import secrets
+import threading
 import unittest
 import uuid
 from datetime import datetime, timezone
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 import frappe
 from frappe.utils import getdate, nowdate
@@ -164,6 +167,26 @@ class TestIntegration(unittest.TestCase):
         self.assertEqual(integration.receive(changed)["status"], "Conflict")
         self.assertEqual(frappe.db.get_value("Sales Order Item", {"parent": first["erp_name"]}, "qty"), 2)
 
+    def test_duplicate_version_cannot_bypass_document_user_permission(self):
+        first = integration.receive(self.message)
+        self.assertEqual(first["status"], "Applied", first)
+        frappe.set_user("Administrator")
+        other = frappe.get_doc({"doctype": "Customer", "customer_name": "Другой клиент " + uuid.uuid4().hex[:10],
+                               "customer_type": "Company", "customer_group": "ERP Exchange Customers",
+                               "territory": "All Territories"}).insert()
+        frappe.get_doc({"doctype": "User Permission", "user": USER, "allow": "Customer",
+                        "for_value": other.name, "apply_to_all_doctypes": 1}).insert()
+        frappe.clear_cache(user=USER)
+        frappe.set_user(USER)
+        native = frappe.get_doc("Sales Order", first["erp_name"])
+        self.assertFalse(frappe.has_permission("Sales Order", "read", doc=native))
+        replay = copy.deepcopy(self.message)
+        for fresh_uuid in (False, True):
+            if fresh_uuid:
+                replay["message_id"] = str(uuid.uuid4())
+            with self.subTest(fresh_uuid=fresh_uuid), self.assertRaises(frappe.PermissionError):
+                integration.receive(replay)
+
     def test_native_edit_and_submitted_order_are_not_overwritten(self):
         first = integration.receive(self.message)
         self.assertEqual(first["status"], "Applied", first)
@@ -277,17 +300,110 @@ class TestIntegration(unittest.TestCase):
         self.assertEqual(integration.receive(changed), resolved)
 
 
+class TestOutgoingRevocation(unittest.TestCase):
+    def test_current_service_rights_are_checked_before_any_http(self):
+        setup_exchange()
+        frappe.set_user("Administrator")
+        previous_local = frappe.conf.get("erp_basic_allow_local_exchange")
+        previous_pause = frappe.conf.get("erp_basic_disable_external_calls")
+        frappe.conf.erp_basic_allow_local_exchange = 1
+        frappe.conf.erp_basic_disable_external_calls = 0
+        roles = [row.role for row in frappe.get_doc("User", USER).roles]
+        received = []
+
+        class Probe(BaseHTTPRequestHandler):
+            def do_POST(self):
+                received.append(self.path)
+                self.send_response(503)
+                self.end_headers()
+
+            def log_message(self, *args):
+                pass
+
+        server = ThreadingHTTPServer(("127.0.0.1", 0), Probe)
+        thread = threading.Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        connector, customer, offering = make_connector()
+        connector.outbound_enabled = 1
+        connector.endpoint = "http://127.0.0.1:" + str(server.server_port) + "/erp-events"
+        connector.remote_token = secrets.token_urlsafe(40)
+        connector.save()
+        message = envelope(connector, customer, offering)
+        frappe.set_user(USER)
+        first = integration.receive(message)
+        self.assertEqual(first["status"], "Applied", first)
+        native_name = first["erp_name"]
+        frappe.set_user("Administrator")
+        frappe.db.commit()
+        name = frappe.db.get_value(integration.OUTBOX, {"connector": connector.name}, "name")
+
+        def restore():
+            frappe.set_user("Administrator")
+            user = frappe.get_doc("User", USER)
+            user.enabled = 1
+            user.set("roles", [{"role": value} for value in roles])
+            user.save()
+            if not frappe.db.exists("User Permission", {"user": USER, "allow": "Company", "for_value": COMPANY}):
+                frappe.get_doc({"doctype": "User Permission", "user": USER, "allow": "Company",
+                                "for_value": COMPANY, "apply_to_all_doctypes": 1}).insert()
+            frappe.clear_cache(user=USER)
+            frappe.db.commit()
+
+        try:
+            for revoked in ("Company", "Integration role", "Native read", "Enabled"):
+                with self.subTest(revoked=revoked):
+                    restore()
+                    if revoked == "Company":
+                        permission = frappe.db.get_value("User Permission",
+                            {"user": USER, "allow": "Company", "for_value": COMPANY}, "name")
+                        frappe.delete_doc("User Permission", permission)
+                    else:
+                        user = frappe.get_doc("User", USER)
+                        if revoked == "Enabled":
+                            user.enabled = 0
+                        else:
+                            removed = "ERP Basic Integration" if revoked == "Integration role" else "Sales User"
+                            user.set("roles", [{"role": value} for value in roles if value != removed])
+                        user.save()
+                    frappe.clear_cache(user=USER)
+                    frappe.db.commit()
+                    integration.dispatch_pending()
+                    record = frappe.db.get_value(integration.OUTBOX, name, ["status", "last_error"], as_dict=True)
+                    self.assertEqual(record.status, "Dead Letter")
+                    self.assertEqual(record.last_error, "access_revoked")
+                    self.assertEqual(received, [], "Отозванные права не должны допускать даже попытку HTTP.")
+                    restore()
+                    self.assertEqual(integration.retry_outbox(COMPANY, name)["status"], "Pending")
+                    frappe.db.commit()
+        finally:
+            restore()
+            frappe.db.delete(integration.OUTBOX, {"connector": connector.name})
+            frappe.db.delete(integration.INBOX, {"connector": connector.name})
+            frappe.db.delete(integration.MAPPING, {"connector": connector.name})
+            frappe.delete_doc(integration.CONNECTOR, connector.name)
+            frappe.delete_doc("Sales Order", native_name)
+            frappe.db.commit()
+            server.shutdown()
+            server.server_close()
+            thread.join(timeout=5)
+            frappe.conf.erp_basic_allow_local_exchange = previous_local
+            frappe.conf.erp_basic_disable_external_calls = previous_pause
+
+
 def run():
-    suite = unittest.defaultTestLoader.loadTestsFromTestCase(TestIntegration)
+    suite = unittest.TestSuite([
+        unittest.defaultTestLoader.loadTestsFromTestCase(TestIntegration),
+        unittest.defaultTestLoader.loadTestsFromTestCase(TestOutgoingRevocation),
+    ])
     result = unittest.TextTestRunner(verbosity=2).run(suite)
     frappe.db.rollback()
     if not result.wasSuccessful():
-        raise AssertionError(f"Integration checks failed: {len(result.failures)} failures, {len(result.errors)} errors")
+        raise AssertionError(f"Проверки обмена не пройдены: {len(result.failures)} неудач, {len(result.errors)} ошибок")
     return {"tests_run": result.testsRun, "failures": len(result.failures), "errors": len(result.errors)}
 
 
 def prepare_http_fixture(config_path):
-    """Provision throwaway API users for the two-server test; never print keys."""
+    """Создание тестовых API-пользователей для двух серверов без вывода ключей."""
     import os
     from pathlib import Path
     from frappe.core.doctype.user.user import generate_keys
@@ -300,7 +416,7 @@ def prepare_http_fixture(config_path):
         integration._uuid(config[key_name], key_name)
     callback = config["clientora_url"].rstrip("/") + "/integrations/erp/v1/events/" + config["org_id"]
     if not callback.startswith("http://127.0.0.1:") or len(config["callback_token"]) < 32:
-        frappe.throw("HTTP fixture supports only isolated loopback services.")
+        frappe.throw("Тестовые данные разрешены только для изолированных локальных HTTP-сервисов.")
     update_site_config("erp_basic_allow_local_exchange", 1)
     update_site_config("erp_basic_disable_external_calls", 0)
     frappe.conf.erp_basic_allow_local_exchange = 1

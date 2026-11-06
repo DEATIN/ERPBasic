@@ -31,8 +31,14 @@ async function capture(page, name) {
   await page.screenshot({ path: path.join(screenshots, name), fullPage: true, animations: 'disabled', mask: [page.locator('input[type="password"]')] });
 }
 async function message(response) {
-  assert.equal(response.status(), 200, 'Настоящий ERP API должен подтвердить операцию');
   const body = await response.json();
+  let validation = '';
+  try {
+    validation = JSON.parse(body._server_messages || '[]').map(entry => {
+      try { return JSON.parse(entry).message || ''; } catch (_) { return ''; }
+    }).join(' ').replace(/<[^>]*>/g, '').slice(0, 800);
+  } catch (_) { /* Неверный формат ошибки не должен скрывать HTTP-статус. */ }
+  assert.equal(response.status(), 200, `Настоящий ERP API должен подтвердить операцию: ${body.exc_type || ''} ${validation}`);
   assert.ok(body.message && !body.exc_type, 'ERP API должен вернуть успешный результат');
   return body.message;
 }

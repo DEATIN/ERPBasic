@@ -24,7 +24,7 @@
   "fields": [
     {
       "fieldname": "company",
-      "label": "Company",
+      "label": "Организация",
       "fieldtype": "Link",
       "options": "Company",
       "reqd": 1,
@@ -33,7 +33,7 @@
     },
     {
       "fieldname": "connector",
-      "label": "Connector",
+      "label": "Подключение",
       "fieldtype": "Link",
       "options": "ERP Basic Connector",
       "reqd": 1,
@@ -41,27 +41,27 @@
     },
     {
       "fieldname": "external_type",
-      "label": "External type",
+      "label": "Тип внешнего объекта",
       "fieldtype": "Select",
       "options": "customer\noffering\norder",
       "reqd": 1
     },
     {
       "fieldname": "external_id",
-      "label": "External UUID",
+      "label": "UUID внешнего объекта",
       "fieldtype": "Data",
       "reqd": 1
     },
     {
       "fieldname": "erp_doctype",
-      "label": "ERP DocType",
+      "label": "Тип документа ERP",
       "fieldtype": "Link",
       "options": "DocType",
       "reqd": 1
     },
     {
       "fieldname": "erp_name",
-      "label": "ERP document",
+      "label": "Документ ERP",
       "fieldtype": "Dynamic Link",
       "options": "erp_doctype",
       "reqd": 0,
@@ -69,39 +69,39 @@
     },
     {
       "fieldname": "remote_version",
-      "label": "Latest incoming version",
+      "label": "Последняя входящая версия",
       "fieldtype": "Int",
       "default": "0",
       "read_only": 1
     },
     {
       "fieldname": "remote_hash",
-      "label": "Latest incoming fingerprint",
+      "label": "Хеш последней входящей версии",
       "fieldtype": "Data",
       "read_only": 1
     },
     {
       "fieldname": "local_version",
-      "label": "Outgoing version",
+      "label": "Исходящая версия",
       "fieldtype": "Int",
       "default": "0",
       "read_only": 1
     },
     {
       "fieldname": "native_modified",
-      "label": "Last imported native revision",
+      "label": "Ревизия документа после импорта",
       "fieldtype": "Data",
       "read_only": 1
     },
     {
       "fieldname": "last_result",
-      "label": "Last accepted result",
+      "label": "Последний принятый результат",
       "fieldtype": "Long Text",
       "read_only": 1
     },
     {
       "fieldname": "business_hash",
-      "label": "Last imported business fields fingerprint",
+      "label": "Хеш импортированных учётных полей",
       "fieldtype": "Data",
       "read_only": 1
     }

@@ -75,6 +75,7 @@ test('Интерфейс: создание, подтверждённая зап�
     assert.equal(await page.getByRole('button', { name: 'Провести', exact: true }).count(), 0);
     assert.equal(writes[0].document.name, undefined); assert.equal(writes[0].document.grand_total, undefined); assert.equal(writes[0].document.docstatus, undefined);
     assert.equal(writes[0].document.company, undefined); assert.equal(writes[0].company, 'Organisation A');
+    assert.equal(writes[0].document.items[0].uom, null); assert.equal(writes[0].document.items[0].conversion_factor, null);
     releaseSave();
     await page.getByRole('button', { name: 'Провести', exact: true }).waitFor();
     assert.equal(await page.locator('.top-title strong').textContent(), 'SO-A-0001');
@@ -120,6 +121,34 @@ test('Интерфейс: потеря ответа блокирует реда�
     await page.getByText('Документ сохранён на сервере.', { exact: true }).waitFor();
     assert.deepEqual(writes[0], writes[1]); assert.equal(writes.length, 2);
     assert.equal(await page.locator('#field-items-0-qty').inputValue(), '2');
+    assert.deepEqual(errors, []);
+  } finally { await page.close(); }
+});
+
+test('Интерфейс: смена товара и единицы очищает прежний коэффициент явным null', async () => {
+  const writes = [];
+  const { page, errors } = await pageFixture(async (route, method) => {
+    if (method === 'get_document') { await fulfill(route, envelope('orders', { ...order, items: [{ ...order.items[0], uom: 'Box', conversion_factor: 5 }] })); return true; }
+    if (method === 'save_document') {
+      const args = route.request().postDataJSON(); writes.push(args);
+      const uom = args.document.items[0].uom || 'Kg';
+      await fulfill(route, envelope('orders', { ...order, items: [{ ...args.document.items[0], uom, conversion_factor: uom === 'Kg' ? 1 : 1000 }] }));
+      return true;
+    }
+    return false;
+  });
+  try {
+    await page.goto(`${origin}/erp?kind=orders&name=${order.name}`);
+    await page.locator('#field-items-0-item_code').fill('SKU-KG');
+    assert.equal(await page.locator('#field-items-0-uom').inputValue(), '');
+    await page.getByRole('button', { name: 'Сохранить', exact: true }).click();
+    await page.waitForFunction(() => document.getElementById('field-items-0-uom').value === 'Kg');
+    assert.equal(writes[0].document.items[0].name, 'row-1');
+    assert.equal(writes[0].document.items[0].uom, null); assert.equal(writes[0].document.items[0].conversion_factor, null);
+    await page.locator('#field-items-0-uom').fill('Tonne');
+    await page.getByRole('button', { name: 'Сохранить', exact: true }).click();
+    await page.waitForFunction(() => document.querySelector('.server-save-status').textContent.startsWith('Сохранён'));
+    assert.equal(writes[1].document.items[0].uom, 'Tonne'); assert.equal(writes[1].document.items[0].conversion_factor, null);
     assert.deepEqual(errors, []);
   } finally { await page.close(); }
 });

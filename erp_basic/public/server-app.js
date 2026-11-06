@@ -426,12 +426,13 @@
   }
   function selectReference(index) {
     const lookup = state.lookup; const row = lookup?.rows[index]; if (!row) return;
+    const previous = getPath(lookup.path);
     setPath(lookup.path, row.name);
-    if (lookup.kind === 'items' && /^items\.\d+\.item_code$/.test(lookup.path)) {
+    if (lookup.kind === 'items' && previous !== row.name && /^items\.\d+\.item_code$/.test(lookup.path)) {
       const item = state.doc.items[Number(lookup.path.split('.')[1])];
-      item.item_name = row.item_name || ''; item.uom = row.stock_uom || ''; item.conversion_factor = 1;
+      item.item_name = row.item_name || ''; item.uom = null; item.conversion_factor = null;
     }
-    if (lookup.kind === 'uoms' && /^items\.\d+\.uom$/.test(lookup.path)) delete state.doc.items[Number(lookup.path.split('.')[1])].conversion_factor;
+    if (lookup.kind === 'uoms' && previous !== row.name && /^items\.\d+\.uom$/.test(lookup.path)) state.doc.items[Number(lookup.path.split('.')[1])].conversion_factor = null;
     state.dirty = true; closeDialog(); renderContent();
     document.getElementById(`field-${lookup.path.replace(/\./g, '-')}`)?.focus();
   }
@@ -594,12 +595,12 @@
     const itemField = /^items\.(\d+)\.(item_code|uom)$/.exec(path);
     if (itemField && previous !== value) {
       const item = state.doc.items[Number(itemField[1])];
-      delete item.conversion_factor;
+      item.conversion_factor = null;
       if (itemField[2] === 'item_code') {
-        item.uom = ''; item.item_name = '';
+        item.uom = null; item.item_name = '';
         const uom = document.getElementById(`field-items-${itemField[1]}-uom`); if (uom) uom.value = '';
         const hint = target.closest('tr')?.querySelector('.server-item-hint'); if (hint) hint.textContent = '';
-      }
+      } else if (!value) item.uom = null;
     }
     state.dirty = true;
     const indicator = document.querySelector('.server-save-status'); if (indicator) indicator.innerHTML = '<span class="server-dirty">Изменения не сохранены</span>';

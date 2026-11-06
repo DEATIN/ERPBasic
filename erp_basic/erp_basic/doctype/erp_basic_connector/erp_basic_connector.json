@@ -23,7 +23,7 @@
   "fields": [
     {
       "fieldname": "company",
-      "label": "Company",
+      "label": "Организация",
       "fieldtype": "Link",
       "options": "Company",
       "reqd": 1,
@@ -32,7 +32,7 @@
     },
     {
       "fieldname": "source_system",
-      "label": "Source system",
+      "label": "Система-источник",
       "fieldtype": "Select",
       "options": "clientora",
       "default": "clientora",
@@ -40,20 +40,20 @@
     },
     {
       "fieldname": "source_tenant",
-      "label": "Clientora organization UUID",
+      "label": "UUID организации Clientora",
       "fieldtype": "Data",
       "reqd": 1,
       "search_index": 1
     },
     {
       "fieldname": "local_tenant",
-      "label": "ERP connector identity",
+      "label": "UUID контура ERP",
       "fieldtype": "Data",
       "read_only": 1
     },
     {
       "fieldname": "integration_user",
-      "label": "Incoming API user",
+      "label": "Служебный пользователь API",
       "fieldtype": "Link",
       "options": "User",
       "reqd": 1,
@@ -61,34 +61,34 @@
     },
     {
       "fieldname": "enabled",
-      "label": "Enabled",
+      "label": "Включено",
       "fieldtype": "Check",
       "default": "0"
     },
     {
       "fieldname": "outbound_enabled",
-      "label": "Allow outbound exchange",
+      "label": "Разрешить исходящий обмен",
       "fieldtype": "Check",
       "default": "0"
     },
     {
       "fieldname": "endpoint",
-      "label": "Clientora endpoint",
+      "label": "Адрес API Clientora",
       "fieldtype": "Small Text"
     },
     {
       "fieldname": "remote_token",
-      "label": "Clientora callback key",
+      "label": "Ключ входящего API Clientora",
       "fieldtype": "Password"
     },
     {
       "fieldname": "description",
-      "label": "Description",
+      "label": "Описание",
       "fieldtype": "Small Text"
     },
     {
       "fieldname": "selling_price_list",
-      "label": "ERP selling price list",
+      "label": "Прайс-лист продаж ERP",
       "fieldtype": "Link",
       "options": "Price List"
     }
