@@ -1,0 +1,154 @@
+{
+  "doctype": "DocType",
+  "name": "ERP Basic Marking Code",
+  "module": "ERP Basic",
+  "autoname": "hash",
+  "engine": "InnoDB",
+  "field_order": [
+    "company",
+    "namespace",
+    "gtin",
+    "serial",
+    "canonical_ki",
+    "raw_encrypted",
+    "parser_profile",
+    "item_code",
+    "warehouse",
+    "local_state",
+    "external_state",
+    "external_checked_at",
+    "external_source",
+    "reserved_job",
+    "package",
+    "batch_no",
+    "expiry_date",
+    "regulatory_owner",
+    "manufacturer",
+    "raw_fingerprint"
+  ],
+  "fields": [
+    {
+      "fieldname": "company",
+      "label": "Организация",
+      "fieldtype": "Link",
+      "options": "Company",
+      "reqd": 1
+    },
+    {
+      "fieldname": "namespace",
+      "label": "Пространство КИ",
+      "fieldtype": "Data",
+      "reqd": 1
+    },
+    {
+      "fieldname": "gtin",
+      "label": "GTIN",
+      "fieldtype": "Data",
+      "reqd": 1
+    },
+    {
+      "fieldname": "serial",
+      "label": "Серийная часть",
+      "fieldtype": "Data",
+      "reqd": 1
+    },
+    {
+      "fieldname": "canonical_ki",
+      "label": "КИ",
+      "fieldtype": "Text",
+      "reqd": 1
+    },
+    {
+      "fieldname": "raw_encrypted",
+      "label": "Зашифрованный КМ",
+      "fieldtype": "Long Text",
+      "reqd": 1
+    },
+    {
+      "fieldname": "parser_profile",
+      "label": "Профиль синтаксиса",
+      "fieldtype": "Data",
+      "reqd": 1
+    },
+    {
+      "fieldname": "item_code",
+      "label": "Товар",
+      "fieldtype": "Link",
+      "options": "Item",
+      "reqd": 1
+    },
+    {
+      "fieldname": "warehouse",
+      "label": "Физический склад",
+      "fieldtype": "Link",
+      "options": "Warehouse"
+    },
+    {
+      "fieldname": "local_state",
+      "label": "Локальное состояние",
+      "fieldtype": "Select",
+      "options": "Observed\nPrepared\nReceived\nDispatched\nQuarantine",
+      "reqd": 1,
+      "default": "Observed"
+    },
+    {
+      "fieldname": "external_state",
+      "label": "Состояние ГИС МТ",
+      "fieldtype": "Data",
+      "default": "Unverified"
+    },
+    {
+      "fieldname": "external_checked_at",
+      "label": "Время внешней проверки",
+      "fieldtype": "Datetime"
+    },
+    {
+      "fieldname": "external_source",
+      "label": "Источник внешней проверки",
+      "fieldtype": "Data"
+    },
+    {
+      "fieldname": "reserved_job",
+      "label": "Резерв задания",
+      "fieldtype": "Link",
+      "options": "ERP Basic Marking Job"
+    },
+    {
+      "fieldname": "package",
+      "label": "Упаковка",
+      "fieldtype": "Link",
+      "options": "ERP Basic Marking Package"
+    },
+    {
+      "fieldname": "batch_no",
+      "label": "Партия",
+      "fieldtype": "Data"
+    },
+    {
+      "fieldname": "expiry_date",
+      "label": "Годен до",
+      "fieldtype": "Date"
+    },
+    {
+      "fieldname": "regulatory_owner",
+      "label": "Владелец по данным ГИС МТ",
+      "fieldtype": "Data"
+    },
+    {
+      "fieldname": "manufacturer",
+      "label": "Изготовитель",
+      "fieldtype": "Data"
+    },
+    {
+      "fieldname": "raw_fingerprint",
+      "label": "Отпечаток полного кода",
+      "fieldtype": "Data",
+      "reqd": 1
+    }
+  ],
+  "permissions": [],
+  "allow_rename": 0,
+  "track_changes": 0,
+  "sort_field": "creation",
+  "sort_order": "DESC"
+}

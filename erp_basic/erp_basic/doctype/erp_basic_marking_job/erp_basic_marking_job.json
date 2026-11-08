@@ -1,0 +1,148 @@
+{
+  "doctype": "DocType",
+  "name": "ERP Basic Marking Job",
+  "module": "ERP Basic",
+  "autoname": "hash",
+  "engine": "InnoDB",
+  "field_order": [
+    "company",
+    "role",
+    "profile",
+    "operation",
+    "status",
+    "revision",
+    "environment",
+    "reference_doctype",
+    "reference_name",
+    "reference_snapshot",
+    "warehouse",
+    "expected_quantity",
+    "accepted_count",
+    "rejected_count",
+    "lines",
+    "fiscal_owner",
+    "sale_id",
+    "expectations_loaded",
+    "native_posted"
+  ],
+  "fields": [
+    {
+      "fieldname": "company",
+      "label": "Организация",
+      "fieldtype": "Link",
+      "options": "Company",
+      "reqd": 1
+    },
+    {
+      "fieldname": "role",
+      "label": "Рабочее место",
+      "fieldtype": "Select",
+      "options": "manufacturer\nwholesale\nretail",
+      "reqd": 1
+    },
+    {
+      "fieldname": "profile",
+      "label": "Профиль правил",
+      "fieldtype": "Data",
+      "reqd": 1
+    },
+    {
+      "fieldname": "operation",
+      "label": "Операция",
+      "fieldtype": "Data",
+      "reqd": 1
+    },
+    {
+      "fieldname": "status",
+      "label": "Состояние",
+      "fieldtype": "Select",
+      "options": "Draft\nPrepared\nCancelled\nPosted",
+      "reqd": 1,
+      "default": "Draft"
+    },
+    {
+      "fieldname": "revision",
+      "label": "Версия",
+      "fieldtype": "Int",
+      "default": 0
+    },
+    {
+      "fieldname": "environment",
+      "label": "Контур",
+      "fieldtype": "Select",
+      "options": "Preparation\nTest",
+      "reqd": 1
+    },
+    {
+      "fieldname": "reference_doctype",
+      "label": "Тип основания",
+      "fieldtype": "Data"
+    },
+    {
+      "fieldname": "reference_name",
+      "label": "Документ основания",
+      "fieldtype": "Data"
+    },
+    {
+      "fieldname": "reference_snapshot",
+      "label": "Снимок основания",
+      "fieldtype": "Long Text"
+    },
+    {
+      "fieldname": "warehouse",
+      "label": "Склад",
+      "fieldtype": "Link",
+      "options": "Warehouse"
+    },
+    {
+      "fieldname": "expected_quantity",
+      "label": "Ожидаемое количество",
+      "fieldtype": "Int"
+    },
+    {
+      "fieldname": "accepted_count",
+      "label": "Принято сканов",
+      "fieldtype": "Int",
+      "default": 0
+    },
+    {
+      "fieldname": "rejected_count",
+      "label": "Отклонено сканов",
+      "fieldtype": "Int",
+      "default": 0
+    },
+    {
+      "fieldname": "lines",
+      "label": "Товарные строки",
+      "fieldtype": "Long Text",
+      "reqd": 1
+    },
+    {
+      "fieldname": "fiscal_owner",
+      "label": "Владелец чека",
+      "fieldtype": "Data"
+    },
+    {
+      "fieldname": "sale_id",
+      "label": "Идентификатор продажи",
+      "fieldtype": "Data"
+    },
+    {
+      "fieldname": "expectations_loaded",
+      "label": "Загружен состав поставки",
+      "fieldtype": "Check",
+      "default": 0
+    },
+    {
+      "fieldname": "native_posted",
+      "label": "Учёт проведён",
+      "fieldtype": "Check",
+      "default": 0
+    }
+  ],
+  "permissions": [],
+  "allow_rename": 0,
+  "track_changes": 0,
+  "sort_field": "creation",
+  "sort_order": "DESC"
+}

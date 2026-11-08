@@ -11,6 +11,7 @@ required_apps = ["erpnext"]
 after_install = "erp_basic.install.after_install"
 after_migrate = "erp_basic.install.after_migrate"
 auth_hooks = ["erp_basic.boundary.check_request"]
+override_doctype_class = {"File": "erp_basic.scoped_file.ERPBasicFile"}
 
 _company_documents = {
     "Company": "company", "Warehouse": "warehouse", "Quotation": "quotation",
@@ -47,4 +48,12 @@ doc_events = {
 }
 doc_events["File"] = {"validate": "erp_basic.boundary.protect_attachment"}
 
-scheduler_events = {"cron": {"* * * * *": ["erp_basic.integration.dispatch_pending"]}}
+for _doctype in ("Delivery Note", "Purchase Receipt", "Sales Invoice", "Purchase Invoice", "Stock Entry", "Stock Reconciliation"):
+    doc_events[_doctype]["before_submit"] = ["erp_basic.guards.before_submit", "erp_basic.marking.guards.before_submit"]
+    doc_events[_doctype]["before_cancel"] = ["erp_basic.guards.before_cancel", "erp_basic.marking.guards.before_cancel"]
+    doc_events[_doctype]["on_submit"].append("erp_basic.marking.guards.on_submit")
+
+for _kind in ("Setup", "Product", "Job", "Code", "Scan", "Device", "History", "Expected", "Package", "Operation", "Import"):
+    has_permission["ERP Basic Marking " + _kind] = "erp_basic.marking.storage.native_permission"
+
+scheduler_events = {"cron": {"* * * * *": ["erp_basic.integration.dispatch_pending", "erp_basic.marking.outbox.dispatch_pending"]}}

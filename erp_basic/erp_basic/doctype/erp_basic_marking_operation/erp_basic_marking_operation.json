@@ -1,0 +1,130 @@
+{
+  "doctype": "DocType",
+  "name": "ERP Basic Marking Operation",
+  "module": "ERP Basic",
+  "autoname": "hash",
+  "engine": "InnoDB",
+  "field_order": [
+    "company",
+    "job",
+    "operation",
+    "business_key",
+    "payload_hash",
+    "payload",
+    "provider",
+    "environment",
+    "state",
+    "external_id",
+    "lease_token",
+    "lease_until",
+    "attempts",
+    "result",
+    "reason",
+    "simulation"
+  ],
+  "fields": [
+    {
+      "fieldname": "company",
+      "label": "Организация",
+      "fieldtype": "Link",
+      "options": "Company",
+      "reqd": 1
+    },
+    {
+      "fieldname": "job",
+      "label": "Задание",
+      "fieldtype": "Link",
+      "options": "ERP Basic Marking Job"
+    },
+    {
+      "fieldname": "operation",
+      "label": "Операция",
+      "fieldtype": "Data",
+      "reqd": 1
+    },
+    {
+      "fieldname": "business_key",
+      "label": "Бизнес-ключ",
+      "fieldtype": "Data",
+      "reqd": 1
+    },
+    {
+      "fieldname": "payload_hash",
+      "label": "Хеш снимка",
+      "fieldtype": "Data",
+      "reqd": 1
+    },
+    {
+      "fieldname": "payload",
+      "label": "Снимок операции",
+      "fieldtype": "Long Text",
+      "reqd": 1
+    },
+    {
+      "fieldname": "provider",
+      "label": "Адаптер",
+      "fieldtype": "Select",
+      "options": "test-simulator-v1",
+      "reqd": 1
+    },
+    {
+      "fieldname": "environment",
+      "label": "Контур",
+      "fieldtype": "Select",
+      "options": "Test",
+      "reqd": 1
+    },
+    {
+      "fieldname": "state",
+      "label": "Состояние",
+      "fieldtype": "Select",
+      "options": "Ready\nDispatching\nUnknown\nAccepted\nRejected\nPartial",
+      "reqd": 1,
+      "default": "Ready"
+    },
+    {
+      "fieldname": "external_id",
+      "label": "Внешний ID",
+      "fieldtype": "Data"
+    },
+    {
+      "fieldname": "lease_token",
+      "label": "Владелец попытки",
+      "fieldtype": "Data"
+    },
+    {
+      "fieldname": "lease_until",
+      "label": "Срок попытки",
+      "fieldtype": "Datetime"
+    },
+    {
+      "fieldname": "attempts",
+      "label": "Попытки",
+      "fieldtype": "Int",
+      "default": 0
+    },
+    {
+      "fieldname": "result",
+      "label": "Результат",
+      "fieldtype": "Long Text"
+    },
+    {
+      "fieldname": "reason",
+      "label": "Причина",
+      "fieldtype": "Data"
+    },
+    {
+      "fieldname": "simulation",
+      "label": "Тестовый исход",
+      "fieldtype": "Select",
+      "options": "accept\nreject\nunknown\npartial",
+      "reqd": 1,
+      "default": "accept"
+    }
+  ],
+  "permissions": [],
+  "allow_rename": 0,
+  "track_changes": 0,
+  "sort_field": "creation",
+  "sort_order": "DESC"
+}

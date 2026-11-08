@@ -1,0 +1,61 @@
+{
+  "doctype": "DocType",
+  "name": "ERP Basic Marking Package",
+  "module": "ERP Basic",
+  "autoname": "hash",
+  "engine": "InnoDB",
+  "field_order": [
+    "company",
+    "label",
+    "parent_package",
+    "status",
+    "revision",
+    "job"
+  ],
+  "fields": [
+    {
+      "fieldname": "company",
+      "label": "Организация",
+      "fieldtype": "Link",
+      "options": "Company",
+      "reqd": 1
+    },
+    {
+      "fieldname": "label",
+      "label": "Внутренняя этикетка",
+      "fieldtype": "Data",
+      "reqd": 1
+    },
+    {
+      "fieldname": "parent_package",
+      "label": "Внешняя упаковка",
+      "fieldtype": "Link",
+      "options": "ERP Basic Marking Package"
+    },
+    {
+      "fieldname": "status",
+      "label": "Состояние",
+      "fieldtype": "Select",
+      "options": "Open\nSealed\nDisassembled",
+      "reqd": 1,
+      "default": "Open"
+    },
+    {
+      "fieldname": "revision",
+      "label": "Версия состава",
+      "fieldtype": "Int",
+      "default": 0
+    },
+    {
+      "fieldname": "job",
+      "label": "Задание",
+      "fieldtype": "Link",
+      "options": "ERP Basic Marking Job"
+    }
+  ],
+  "permissions": [],
+  "allow_rename": 0,
+  "track_changes": 0,
+  "sort_field": "creation",
+  "sort_order": "DESC"
+}

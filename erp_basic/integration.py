@@ -65,6 +65,11 @@ def validate_connector(doc):
             frappe.throw("Выберите активный прайс-лист продаж ERP.")
     if doc.endpoint:
         _endpoint(doc.endpoint)
+    if doc.get("marking_endpoint"):
+        _endpoint(doc.marking_endpoint)
+    if doc.get("marking_enabled") and (not doc.enabled or not doc.get("marking_endpoint")
+                                       or not doc.get_password("remote_token", raise_exception=False)):
+        frappe.throw("Для проекций маркировки нужны включённое подключение, отдельный адрес v2 и служебный ключ.")
     if doc.outbound_enabled and (not doc.enabled or not doc.endpoint or not doc.get_password("remote_token", raise_exception=False)):
         frappe.throw("Для отправки нужны активное подключение, адрес и служебный ключ.")
     old = doc.get_doc_before_save()
@@ -614,11 +619,13 @@ def _deliver(connector, envelope):
         if not _outgoing_access(connector, envelope):
             return ("Dead Letter", "access_revoked",
                     "Отправка остановлена: проверьте активность служебного пользователя, его роль, Company и право чтения документа.", {})
-        _endpoint(connector.endpoint)
+        marking = envelope.get("schema_version") == 2 and envelope.get("event_type") == "marking.summary_changed"
+        endpoint = connector.get("marking_endpoint") if marking else connector.endpoint
+        _endpoint(endpoint)
         secret = connector.get_password("remote_token", raise_exception=False)
         if not secret:
             return "Dead Letter", "credentials_missing", "Настройте служебный ключ Clientora.", {}
-        with requests.post(connector.endpoint, json={"envelope": envelope},
+        with requests.post(endpoint, json={"envelope": envelope},
                            headers={"Authorization": "Bearer " + secret, "Accept": "application/json"},
                            timeout=(3, 10), allow_redirects=False, stream=True) as response:
             raw = bytearray()
@@ -658,6 +665,10 @@ def _outgoing_access(connector, envelope):
         if (envelope.get("source") != "erp_basic" or envelope.get("source_tenant") != connector.local_tenant
                 or payload.get("company") != connector.company or payload.get("erp_doctype") not in NATIVE_EVENTS):
             return False
+        if envelope.get("schema_version") == 2:
+            from erp_basic.marking.projection import outgoing_access
+            if not outgoing_access(connector, envelope):
+                return False
         native = frappe.get_doc(payload["erp_doctype"], payload["erp_name"])
         return native.company == connector.company and bool(frappe.has_permission(
             native.doctype, "read", doc=native, user=connector.integration_user))

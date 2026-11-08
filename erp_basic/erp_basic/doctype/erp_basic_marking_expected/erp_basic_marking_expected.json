@@ -1,0 +1,51 @@
+{
+  "doctype": "DocType",
+  "name": "ERP Basic Marking Expected",
+  "module": "ERP Basic",
+  "autoname": "hash",
+  "engine": "InnoDB",
+  "field_order": [
+    "company",
+    "job",
+    "code_identity",
+    "gtin",
+    "code_masked"
+  ],
+  "fields": [
+    {
+      "fieldname": "company",
+      "label": "Организация",
+      "fieldtype": "Link",
+      "options": "Company",
+      "reqd": 1
+    },
+    {
+      "fieldname": "job",
+      "label": "Задание",
+      "fieldtype": "Link",
+      "options": "ERP Basic Marking Job"
+    },
+    {
+      "fieldname": "code_identity",
+      "label": "Идентичность КИ",
+      "fieldtype": "Data",
+      "reqd": 1
+    },
+    {
+      "fieldname": "gtin",
+      "label": "GTIN",
+      "fieldtype": "Data",
+      "reqd": 1
+    },
+    {
+      "fieldname": "code_masked",
+      "label": "Код для показа",
+      "fieldtype": "Data"
+    }
+  ],
+  "permissions": [],
+  "allow_rename": 0,
+  "track_changes": 0,
+  "sort_field": "creation",
+  "sort_order": "DESC"
+}

@@ -16,6 +16,7 @@ def session():
         return {"authenticated": False}
     from frappe.sessions import get_csrf_token
     from frappe.utils import get_system_timezone, nowdate
+    from erp_basic.marking.service import capabilities as marking_capabilities
 
     user = access.require_user()
     companies = [{"name": name, "default_currency": frappe.db.get_value("Company", name, "default_currency")}
@@ -23,6 +24,7 @@ def session():
     return {"authenticated": True, "user": user,
             "full_name": frappe.db.get_value("User", user, "full_name"), "csrf_token": get_csrf_token(),
             "companies": companies, "roles": frappe.get_roles(),
+            "marking": marking_capabilities(),
             "business_date": nowdate(), "time_zone": get_system_timezone(),
             "capabilities": {kind: commands.capabilities(spec["doctype"]) for kind, spec in KINDS.items()}}
 

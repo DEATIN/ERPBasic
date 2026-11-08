@@ -1,0 +1,58 @@
+{
+  "doctype": "DocType",
+  "name": "ERP Basic Marking History",
+  "module": "ERP Basic",
+  "autoname": "hash",
+  "engine": "InnoDB",
+  "field_order": [
+    "company",
+    "job",
+    "actor",
+    "action",
+    "details",
+    "request_id"
+  ],
+  "fields": [
+    {
+      "fieldname": "company",
+      "label": "Организация",
+      "fieldtype": "Link",
+      "options": "Company",
+      "reqd": 1
+    },
+    {
+      "fieldname": "job",
+      "label": "Задание",
+      "fieldtype": "Link",
+      "options": "ERP Basic Marking Job"
+    },
+    {
+      "fieldname": "actor",
+      "label": "Пользователь",
+      "fieldtype": "Link",
+      "options": "User",
+      "reqd": 1
+    },
+    {
+      "fieldname": "action",
+      "label": "Действие",
+      "fieldtype": "Data",
+      "reqd": 1
+    },
+    {
+      "fieldname": "details",
+      "label": "Безопасные реквизиты",
+      "fieldtype": "Long Text"
+    },
+    {
+      "fieldname": "request_id",
+      "label": "Запрос",
+      "fieldtype": "Data"
+    }
+  ],
+  "permissions": [],
+  "allow_rename": 0,
+  "track_changes": 0,
+  "sort_field": "creation",
+  "sort_order": "DESC"
+}

@@ -18,7 +18,9 @@
     "endpoint",
     "remote_token",
     "description",
-    "selling_price_list"
+    "selling_price_list",
+    "marking_enabled",
+    "marking_endpoint"
   ],
   "fields": [
     {
@@ -91,6 +93,17 @@
       "label": "Прайс-лист продаж ERP",
       "fieldtype": "Link",
       "options": "Price List"
+    },
+    {
+      "fieldname": "marking_enabled",
+      "label": "Проекции маркировки Clientora v2",
+      "fieldtype": "Check",
+      "default": "0"
+    },
+    {
+      "fieldname": "marking_endpoint",
+      "label": "Адрес API проекций маркировки v2",
+      "fieldtype": "Small Text"
     }
   ],
   "permissions": [

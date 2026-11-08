@@ -65,6 +65,7 @@ bench --site erp-basic.localhost execute erp_basic.setup.create_company \
 | [Документы и права](docs/documents-and-access.md) | Native DocTypes, роли, доступ к API, отчётам и вложениям |
 | [Серверный интерфейс](docs/server-interface.md) | Формы, пагинация, конфликты и повтор потерянного запроса |
 | [Обмен с Clientora](docs/clientora-integration.md) | Матрица владельцев, контракт, подключение и журнал |
+| [Подготовка маркировки](docs/marking/README.md) | Три рабочих места, КИ/КМ, сверка, резервы, импорт и честные границы внешнего подключения |
 | [Контрольная миграция](docs/migration.md) | Dry run, начальные остатки, архив истории и сверка |
 | [Окружение и восстановление](infra/README.md) | Установка, CI, backup/restore, закрытый контур и RPO/RTO |
 | [Проверки](docs/verification.md) | Фактические результаты и ещё не проверенные области |

@@ -1,0 +1,103 @@
+{
+  "doctype": "DocType",
+  "name": "ERP Basic Marking Scan",
+  "module": "ERP Basic",
+  "autoname": "hash",
+  "engine": "InnoDB",
+  "field_order": [
+    "company",
+    "job",
+    "actor",
+    "device_id",
+    "event_id",
+    "sequence",
+    "event_hash",
+    "code",
+    "code_masked",
+    "result",
+    "reason",
+    "line_index",
+    "request_revision"
+  ],
+  "fields": [
+    {
+      "fieldname": "company",
+      "label": "Организация",
+      "fieldtype": "Link",
+      "options": "Company",
+      "reqd": 1
+    },
+    {
+      "fieldname": "job",
+      "label": "Задание",
+      "fieldtype": "Link",
+      "options": "ERP Basic Marking Job"
+    },
+    {
+      "fieldname": "actor",
+      "label": "Оператор",
+      "fieldtype": "Link",
+      "options": "User",
+      "reqd": 1
+    },
+    {
+      "fieldname": "device_id",
+      "label": "Устройство",
+      "fieldtype": "Data"
+    },
+    {
+      "fieldname": "event_id",
+      "label": "Событие устройства",
+      "fieldtype": "Data"
+    },
+    {
+      "fieldname": "sequence",
+      "label": "Порядок события",
+      "fieldtype": "Int"
+    },
+    {
+      "fieldname": "event_hash",
+      "label": "Хеш события",
+      "fieldtype": "Data",
+      "reqd": 1
+    },
+    {
+      "fieldname": "code",
+      "label": "Код",
+      "fieldtype": "Link",
+      "options": "ERP Basic Marking Code"
+    },
+    {
+      "fieldname": "code_masked",
+      "label": "Код для показа",
+      "fieldtype": "Data"
+    },
+    {
+      "fieldname": "result",
+      "label": "Результат",
+      "fieldtype": "Select",
+      "options": "Accepted\nRejected\nDuplicate\nConflict\nPending",
+      "reqd": 1
+    },
+    {
+      "fieldname": "reason",
+      "label": "Причина",
+      "fieldtype": "Data"
+    },
+    {
+      "fieldname": "line_index",
+      "label": "Строка",
+      "fieldtype": "Int"
+    },
+    {
+      "fieldname": "request_revision",
+      "label": "Версия запроса",
+      "fieldtype": "Int"
+    }
+  ],
+  "permissions": [],
+  "allow_rename": 0,
+  "track_changes": 0,
+  "sort_field": "creation",
+  "sort_order": "DESC"
+}

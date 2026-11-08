@@ -1,0 +1,48 @@
+{
+  "doctype": "DocType",
+  "name": "ERP Basic Marking Setup",
+  "module": "ERP Basic",
+  "autoname": "hash",
+  "engine": "InnoDB",
+  "field_order": [
+    "company",
+    "environment",
+    "passport",
+    "fiscal_owner"
+  ],
+  "fields": [
+    {
+      "fieldname": "company",
+      "label": "Организация",
+      "fieldtype": "Link",
+      "options": "Company",
+      "reqd": 1
+    },
+    {
+      "fieldname": "environment",
+      "label": "Контур",
+      "fieldtype": "Select",
+      "options": "Preparation\nTest",
+      "reqd": 1,
+      "default": "Preparation"
+    },
+    {
+      "fieldname": "passport",
+      "label": "Паспорт внедрения",
+      "fieldtype": "Long Text"
+    },
+    {
+      "fieldname": "fiscal_owner",
+      "label": "Владелец чека",
+      "fieldtype": "Select",
+      "options": "Unconfigured\nERPBasic\nClientora",
+      "reqd": 1,
+      "default": "Unconfigured"
+    }
+  ],
+  "permissions": [],
+  "allow_rename": 0,
+  "track_changes": 0,
+  "sort_field": "creation",
+  "sort_order": "DESC"
+}
