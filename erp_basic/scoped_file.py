@@ -1,6 +1,7 @@
 """Узкое расширение File: DocShare не обходит область маркировки при ZIP/download/reuse."""
 
 import frappe
+from urllib.parse import unquote
 from frappe.core.doctype.file.file import File
 
 from erp_basic.access import is_administrator
@@ -9,9 +10,14 @@ from erp_basic.access import is_administrator
 class ERPBasicFile(File):
     def before_insert(self):
         # Проверить источник до native before_insert, который может скопировать существующий blob.
-        if not is_administrator() and self.file_url and self.file_url.startswith("/private/files/"):
-            from erp_basic.boundary import _readable_private_file
-            _readable_private_file(self.file_url)
+        if not is_administrator() and self.file_url:
+            # Та же нормализация, что у native File.before_insert; исходное поле не меняем,
+            # чтобы super не выполнил повторный percent-decode.
+            source = frappe.get_doc({"doctype": "File", "file_url": unquote(self.file_url)})
+            source.normalize_file_url()
+            if source.file_url.startswith("/private/files/"):
+                from erp_basic.boundary import _readable_private_file
+                _readable_private_file(source.file_url)
         return super().before_insert()
 
     def _marking_readable(self):

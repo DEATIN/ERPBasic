@@ -510,7 +510,7 @@
   async function logout() {
     if (state.busy || marking?.state.busy) return;
     if (state.unknown || state.recoveryIssue || marking?.hasUnconfirmed()) {
-      if (!window.confirm('Результат предыдущей операции не подтверждён. Безопаснее повторить тот же запрос. При выходе служебная запись восстановления и очередь сканов будут удалены: после нового входа сначала проверьте документ или задание на сервере и только затем вводите данные снова. Всё равно выйти?')) return;
+      if (!window.confirm('Результат предыдущей операции не подтверждён. Безопаснее повторить тот же запрос. При выходе служебная запись восстановления и очередь сканов будут удалены. После нового входа сначала найдите созданный документ на сервере или откройте задание маркировки и проверьте результат операции. Только затем вводите данные снова. Всё равно выйти?')) return;
     } else if (!leaveAllowed()) return;
     marking?.suspend(true); state.busy = true; shell();
     try { await api.logout(); new window.ERPBasicMarking.ScanStore().clear(); ++state.requestId; state.unknown = null; showLogin(); }
