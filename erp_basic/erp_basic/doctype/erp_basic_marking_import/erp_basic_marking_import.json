@@ -1,0 +1,60 @@
+{
+  "doctype": "DocType",
+  "name": "ERP Basic Marking Import",
+  "module": "ERP Basic",
+  "autoname": "hash",
+  "engine": "InnoDB",
+  "field_order": [
+    "company",
+    "source_id",
+    "external_id",
+    "code",
+    "source_hash",
+    "profile"
+  ],
+  "fields": [
+    {
+      "fieldname": "company",
+      "label": "Организация",
+      "fieldtype": "Link",
+      "reqd": 1,
+      "options": "Company"
+    },
+    {
+      "fieldname": "source_id",
+      "label": "Источник",
+      "fieldtype": "Data",
+      "reqd": 1
+    },
+    {
+      "fieldname": "external_id",
+      "label": "Внешний ID",
+      "fieldtype": "Data",
+      "reqd": 1
+    },
+    {
+      "fieldname": "code",
+      "label": "Экземпляр",
+      "fieldtype": "Link",
+      "reqd": 1,
+      "options": "ERP Basic Marking Code"
+    },
+    {
+      "fieldname": "source_hash",
+      "label": "Хеш исходной строки",
+      "fieldtype": "Data",
+      "reqd": 1
+    },
+    {
+      "fieldname": "profile",
+      "label": "Профиль",
+      "fieldtype": "Data",
+      "reqd": 1
+    }
+  ],
+  "permissions": [],
+  "allow_rename": 0,
+  "track_changes": 0,
+  "sort_field": "creation",
+  "sort_order": "DESC"
+}

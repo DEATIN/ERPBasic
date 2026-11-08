@@ -68,7 +68,15 @@
     cancel_document: ['kind', 'name', 'company', 'expected_modified'],
     create_related: ['kind', 'name', 'target_kind', 'company', 'expected_modified'],
     create_return: ['kind', 'name', 'company', 'expected_modified'],
+    marking_create_job: ['company', 'role', 'profile', 'operation', 'lines', 'reference_kind', 'reference_name', 'warehouse'],
+    marking_scan_code: ['company', 'name', 'raw_code', 'expected_revision', 'device_id', 'event_id', 'sequence'],
+    marking_complete_job: ['company', 'name', 'expected_revision'],
+    marking_cancel_job: ['company', 'name', 'expected_revision', 'reason'],
+    marking_record_quantity: ['company', 'name', 'gtin', 'quantity', 'expected_revision'],
+    marking_import_expected_codes: ['company', 'name', 'codes', 'expected_revision'],
   };
+  const MARKING_METHODS = ['workspace', 'get_job', 'get_discrepancy', 'create_job', 'scan_code', 'complete_job', 'cancel_job', 'record_quantity', 'import_expected_codes'];
+  const isMarkingCommand = method => Object.prototype.hasOwnProperty.call(COMMAND_FIELDS, method) && method.startsWith('marking_');
 
   function storageFromBrowser() {
     try { return globalThis.sessionStorage || null; } catch (_) { return null; }
@@ -84,7 +92,7 @@
   }
   function commandText(method, params) {
     if (!Object.prototype.hasOwnProperty.call(COMMAND_FIELDS, method) || !params || typeof params !== 'object' || Array.isArray(params) ||
-      Object.keys(params).some(key => !COMMAND_FIELDS[method].includes(key)) || !params.company || !params.kind || hasCredentialField(params)) {
+      Object.keys(params).some(key => !COMMAND_FIELDS[method].includes(key)) || !params.company || (!isMarkingCommand(method) && !params.kind) || hasCredentialField(params)) {
       throw new ApiError('Запрос не соответствует безопасному контракту записи.', { code: 'INVALID_COMMAND' });
     }
     return JSON.stringify(canonical({ method, params }));
@@ -161,10 +169,10 @@
       const mutation = Boolean(options.mutation);
       const builtin = options.builtin === true;
       const namespace = options.namespace || 'api';
-      if (!/^[a-z_]+$/.test(method) || !['api', 'integration'].includes(namespace) || (namespace === 'integration' && !['journal', 'retry_inbox', 'retry_outbox'].includes(method)) || (builtin && (!['login', 'logout'].includes(method) || namespace !== 'api'))) {
+      if (!/^[a-z_]+$/.test(method) || !['api', 'integration', 'marking'].includes(namespace) || (namespace === 'integration' && !['journal', 'retry_inbox', 'retry_outbox'].includes(method)) || (namespace === 'marking' && !MARKING_METHODS.includes(method)) || (builtin && (!['login', 'logout'].includes(method) || namespace !== 'api'))) {
         throw new ApiError('Некорректный метод API.', { code: 'INVALID_METHOD' });
       }
-      const base = builtin ? '/api/method/' : `/api/method/erp_basic.${namespace}.`;
+      const base = builtin ? '/api/method/' : `/api/method/erp_basic.${namespace === 'marking' ? 'marking.api' : namespace}.`;
       let url = base + method;
       const headers = { Accept: 'application/json' };
       const init = { method: verb, headers, credentials: 'same-origin', cache: 'no-store' };
@@ -274,7 +282,7 @@
         record = this.pending.get(signature) || (saved ? { ...saved, uncertain: true } : null);
         if (!record) record = { ...await this.store.write(this.user, method, params, this.createKey()), uncertain: false };
         this.pending.set(signature, record);
-        const result = await this.request(method, { ...params, idempotency_key: record.key }, { verb: 'POST', mutation: true });
+        const result = await this.request(isMarkingCommand(method) ? method.slice(8) : method, { ...record.params, idempotency_key: record.key }, { verb: 'POST', mutation: true, namespace: isMarkingCommand(method) ? 'marking' : 'api' });
         if (options.validate) await options.validate(result);
         this.store.clear();
         this.pending.delete(signature);
@@ -301,5 +309,5 @@
     return globalThis.fetch.bind(globalThis);
   }
 
-  return { ApiError, Client, PendingStore, RECOVERY_KEY, canonical };
+  return { ApiError, Client, PendingStore, RECOVERY_KEY, canonical, isMarkingCommand };
 });

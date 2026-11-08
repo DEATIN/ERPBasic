@@ -5,7 +5,8 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
-const { ApiError } = require('../erp_basic/public/server-api.js');
+const { ApiError, isMarkingCommand } = require('../erp_basic/public/server-api.js');
+const marking = require('../erp_basic/public/marking-app.js');
 const source = fs.readFileSync(path.join(__dirname, '../erp_basic/public/server-app.js'), 'utf8');
 const permission = { read: true, create: true, write: true, submit: true, cancel: true };
 const session = { authenticated: true, business_date: '2026-11-05', time_zone: 'Europe/Moscow', user: 'employee@example.test', full_name: 'Сотрудник', roles: [], companies: [{ name: 'Организация А', default_currency: 'RUB' }], capabilities: { orders: permission } };
@@ -32,7 +33,7 @@ async function bootstrap(options = {}) {
     querySelector: () => null,
     addEventListener: (event, callback) => { listeners[event] = callback; },
   };
-  const window = { ERPBasicAPI: { Client, ApiError }, history: { replaceState() {} }, addEventListener() {}, setTimeout: () => 0, confirm: () => true };
+  const window = { ERPBasicAPI: { Client, ApiError, isMarkingCommand }, ERPBasicMarking: marking, history: { replaceState() {} }, addEventListener() {}, setTimeout: () => 0, confirm: () => true };
   const context = vm.createContext({ document, window, location: { search: options.search || '?kind=orders' }, URLSearchParams });
   vm.runInContext(source, context, { filename: 'server-app.js' });
   await new Promise(resolve => setImmediate(resolve));

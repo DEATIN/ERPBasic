@@ -56,6 +56,8 @@ def _readable_private_file(path, name=None):
             if field and frappe.db.get_value(row.attached_to_doctype, row.attached_to_name, field) not in companies:
                 continue
         file = frappe.get_doc("File", row.name)
+        if file_permission(file, user=frappe.session.user) is False:
+            continue
         if file.is_downloadable():
             return row.name
     frappe.throw("Нет доступа к этому вложению.", frappe.PermissionError)
@@ -88,6 +90,12 @@ def check_request():
     # auth_hooks выполняются после аутентификации API token и cookie в Frappe 15.
     request = getattr(frappe.local, "request", None)
     if not request or access.is_administrator():
+        return
+    # Даже полный ERPNext не расширяет публичный контракт служебных реестров маркировки.
+    if (request.path.startswith("/api/") and "/ERP Basic Marking " in request.path) or str(frappe.form_dict.get("doctype", "")).startswith("ERP Basic Marking "):
+        frappe.throw("Реестр маркировки доступен только через её рабочие операции.", frappe.PermissionError)
+    if request.path.startswith("/private/files/") and not frappe.form_dict.get("cmd"):
+        frappe.form_dict.fid = _readable_private_file(request.path, frappe.form_dict.get("fid"))
         return
     integration_user = "ERP Basic Integration" in frappe.get_roles()
     if frappe.conf.get("erp_basic_full_erpnext") and not integration_user:
@@ -143,6 +151,15 @@ def check_request():
 def protect_attachment(doc, event=None):
     if frappe.flags.in_install or frappe.flags.in_migrate or not doc.attached_to_doctype:
         return
+    if doc.attached_to_doctype.startswith("ERP Basic Marking "):
+        from erp_basic.marking.service import authorize
+        parent = frappe.get_doc(doc.attached_to_doctype, doc.attached_to_name)
+        authorize(parent.company, "write")
+        if file_permission(doc, user=frappe.session.user) is False:
+            frappe.throw("Нет доступа к основанию вложения маркировки.", frappe.PermissionError)
+        if not doc.is_private:
+            frappe.throw("Вложения маркировки должны быть приватными.", frappe.PermissionError)
+        return
     allowed = {spec["doctype"] for spec in KINDS.values()}
     if doc.attached_to_doctype not in allowed:
         if not access.is_administrator():
@@ -158,6 +175,31 @@ def protect_attachment(doc, event=None):
 
 def file_permission(doc, ptype=None, user=None, **kwargs):
     if doc.attached_to_doctype and doc.attached_to_name:
+        if doc.attached_to_doctype.startswith("ERP Basic Marking "):
+            from erp_basic.marking.service import can_read_job
+            user = user or frappe.session.user
+            if "ERP Basic Integration" in frappe.get_roles(user) and not access.is_administrator(user):
+                return False
+            company = frappe.db.get_value(doc.attached_to_doctype, doc.attached_to_name, "company")
+            if company not in access.allowed_companies(user):
+                return False
+            roles = set(frappe.get_roles(user))
+            if not access.is_administrator(user) and not roles.intersection({
+                    "ERP Basic Marking User", "ERP Basic Marking Manager", "ERP Basic Audit Reader", "ERP Basic Observer"}):
+                return False
+            parent = frappe.get_doc(doc.attached_to_doctype, doc.attached_to_name)
+            job_name = parent.name if parent.doctype == "ERP Basic Marking Job" else parent.get("job") or parent.get("reserved_job")
+            if job_name:
+                job = frappe.db.get_value("ERP Basic Marking Job", job_name, "*", as_dict=True)
+                if not job or job.company != company or not can_read_job(job, user=user):
+                    return False
+            item_code = parent.get("item_code")
+            if not item_code and parent.get("code"):
+                item_code = frappe.db.get_value("ERP Basic Marking Code", parent.code, "item_code")
+            if item_code and not frappe.has_permission("Item", "read", doc=frappe.get_doc("Item", item_code), user=user):
+                return False
+            if parent.get("warehouse") and not frappe.has_permission("Warehouse", "read", doc=frappe.get_doc("Warehouse", parent.warehouse), user=user):
+                return False
         selected = {spec["doctype"] for spec in KINDS.values()}
         if doc.attached_to_doctype in selected:
             parent = frappe.get_doc(doc.attached_to_doctype, doc.attached_to_name)

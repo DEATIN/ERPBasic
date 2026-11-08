@@ -1,4 +1,4 @@
-name: Сервер ERP Basic — MariaDB и восстановление
+name: Сервер ERP Basic — учёт, маркировка и восстановление
 
 on:
   pull_request:
@@ -62,7 +62,7 @@ jobs:
         shell: bash
         run: |
           runuser -u erp-ci -- "$ERP_BASIC_PYTHON" "инструменты/сервер/окружение.py" --root "$RUNNER_TEMP/erp-basic-runtime" bootstrap --python "$ERP_BASIC_PYTHON"
-      - name: Проверить реальный сервер и восстановление
+      - name: Проверить учёт и маркировку на реальных SQL, HTTP, UI и восстановлении
         shell: bash
         run: |
           runuser -u erp-ci -- "$RUNNER_TEMP/erp-basic-runtime/bench/env/bin/python" "инструменты/сервер/ci.py" --root "$RUNNER_TEMP/erp-basic-runtime" --browser-tests

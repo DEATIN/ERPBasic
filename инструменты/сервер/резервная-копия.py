@@ -44,6 +44,9 @@ CRITICAL_DOCTYPES = (
     "ERP Basic Operation", "ERP Basic Audit Event", "ERP Basic External Mapping",
     "ERP Basic Connector", "ERP Basic Inbox", "ERP Basic Outbox",
     "ERP Basic Migration Run", "ERP Basic Migration Mapping",
+    "ERP Basic Marking Setup", "ERP Basic Marking Product", "ERP Basic Marking Job", "ERP Basic Marking Code",
+    "ERP Basic Marking Scan", "ERP Basic Marking Device", "ERP Basic Marking History", "ERP Basic Marking Expected",
+    "ERP Basic Marking Package", "ERP Basic Marking Operation", "ERP Basic Marking Import",
 )
 
 
@@ -108,6 +111,19 @@ def database_snapshot():
         visited.add(doctype)
         if frappe.db.table_exists(doctype):
             table = ("tab" + doctype).replace("`", "``")
+            if doctype.startswith("ERP Basic Marking "):
+                # Большой реестр кодов не загружается целиком в память при контрольной сверке backup.
+                checksum, count, last = hashlib.sha256(), 0, ""
+                while True:
+                    batch = frappe.db.sql(f"SELECT * FROM `{table}` WHERE name>%s ORDER BY name LIMIT 500", (last,), as_dict=True)
+                    if not batch:
+                        break
+                    for row in batch:
+                        checksum.update(canonical(row) + b"\n")
+                    count += len(batch)
+                    last = batch[-1].name
+                snapshot[doctype] = {"rows": count, "sha256": checksum.hexdigest()}
+                continue
             rows = frappe.db.sql(f"SELECT * FROM `{table}` ORDER BY name", as_dict=True)
             if doctype == "ERP Basic Connector":
                 for row in rows:
@@ -122,7 +138,21 @@ def database_snapshot():
     for row in rows:
         plaintext = get_decrypted_password(row.doctype, row.name, row.fieldname, raise_exception=True)
         passwords[json.dumps([row.doctype, row.name, row.fieldname])] = hashlib.sha256(plaintext.encode()).hexdigest()
+    # КМ шифруются ключом Site отдельно от Password. Проверяем расшифровку без plaintext в отчёте.
+    from frappe.utils.password import decrypt
+    marking_hash, marking_count, last = hashlib.sha256(), 0, ""
+    if frappe.db.table_exists("ERP Basic Marking Code"):
+        while True:
+            batch = frappe.db.sql("SELECT name,raw_encrypted FROM `tabERP Basic Marking Code` WHERE name>%s "
+                                   "ORDER BY name LIMIT 500", (last,), as_dict=True)
+            if not batch:
+                break
+            for row in batch:
+                marking_hash.update(canonical([row.name, decrypt(row.raw_encrypted)]) + b"\n")
+            marking_count += len(batch)
+            last = batch[-1].name
     return {"documents": snapshot, "encrypted_passwords": passwords,
+            "encrypted_marking": {"count": marking_count, "sha256": marking_hash.hexdigest()},
             "doctype_count": frappe.db.count("DocType"), "patch_count": frappe.db.count("Patch Log")}
 
 
@@ -412,6 +442,7 @@ def restore(root, site, backup_directory, key_file):
                   "duration_seconds": round(time.monotonic() - started, 3), "database_verified": True,
                   "verified_doctypes": len(actual_database["documents"]),
                   "verified_encrypted_passwords": len(actual_database["encrypted_passwords"]),
+                  "verified_encrypted_marking_codes": actual_database["encrypted_marking"]["count"],
                   "public_files": sum(name.startswith("public/") for name in actual_files),
                   "private_files": sum(name.startswith("private/") for name in actual_files),
                   "attachments_verified": True, "external_calls_disabled": True,

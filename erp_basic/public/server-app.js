@@ -4,6 +4,7 @@
 
   const { Client, ApiError } = window.ERPBasicAPI;
   const api = new Client();
+  let marking = null;
   const app = document.getElementById('server-app');
   const dialog = document.getElementById('server-dialog');
   const state = { session: null, company: '', view: 'home', kind: '', doc: null, serverDocument: null, permissions: {}, dirty: false,
@@ -61,7 +62,7 @@
   for (const kind of ['quotes', 'orders', 'deliveries', 'invoices', 'purchaseOrders', 'receipts', 'purchaseInvoices']) {
     specs[kind].fields.push(number('additional_discount_percentage', 'Скидка, %', { min: 0, max: 100 }), select('apply_discount_on', 'База скидки', [['Grand Total', 'Итоговая сумма'], ['Net Total', 'Сумма без налогов']]));
   }
-  const modules = { home: ['Главная', 'home'], sales: ['Продажи', 'sales'], purchase: ['Закупки', 'purchase'], stock: ['Склад', 'stock'], finance: ['Финансы', 'finance'], master: ['Справочники', 'master'], exchange: ['Обмен', 'refresh'] };
+  const modules = { home: ['Главная', 'home'], sales: ['Продажи', 'sales'], purchase: ['Закупки', 'purchase'], stock: ['Склад', 'stock'], finance: ['Финансы', 'finance'], master: ['Справочники', 'master'], marking: ['Маркировка', 'stock'], exchange: ['Обмен', 'refresh'] };
   const tradeChildFields = ['name', 'item_code', 'qty', 'rate', 'uom', 'conversion_factor', 'warehouse', 'delivery_date', 'schedule_date', 'sales_order', 'so_detail', 'against_sales_order', 'delivery_note', 'dn_detail', 'purchase_order', 'purchase_order_item', 'purchase_receipt', 'purchase_receipt_item', 'pr_detail', 'quotation_item', 'prevdoc_docname', 'expense_account', 'cost_center'];
   const stockChildFields = ['name', 'item_code', 'qty', 'uom', 'conversion_factor', 's_warehouse', 't_warehouse', 'basic_rate', 'expense_account', 'cost_center'];
   const inventoryChildFields = ['name', 'item_code', 'warehouse', 'qty', 'valuation_rate'];
@@ -70,6 +71,7 @@
   const commandLabels = { save_document: 'Сохранение документа', submit_document: 'Проведение документа', cancel_document: 'Отмена документа', create_related: 'Создание связанного документа', create_return: 'Создание возврата' };
   const commandResults = { save_document: 'Документ сохранён на сервере.', submit_document: 'Документ проведён на сервере.', cancel_document: 'Документ отменён на сервере.', create_related: 'Связанный черновик создан на сервере.', create_return: 'Черновик возврата создан на сервере.' };
   function canExchange() { return state.session?.roles?.some(role => ['System Manager', 'ERP Basic Integration'].includes(role)); }
+  function canMarking() { return state.session?.marking?.read === true || state.session?.roles?.some(role => ['System Manager', 'ERP Basic Marking User', 'ERP Basic Marking Manager'].includes(role)); }
   function capability(kind, action) { return state.session?.capabilities?.[kind]?.[action] === true; }
   function docPermission(action) { return state.permissions?.[action] === true || (!state.doc?.name && capability(state.kind, action)); }
   function currency(doc = state.doc) { return doc?.currency || state.session?.companies?.find(row => row.name === state.company)?.default_currency || ''; }
@@ -92,7 +94,7 @@
     const params = new URLSearchParams();
     if (state.company) params.set('company', state.company);
     if (state.kind) params.set('kind', state.kind);
-    if (['stock', 'exchange'].includes(state.view)) params.set('view', state.view);
+    if (['stock', 'exchange', 'marking'].includes(state.view)) params.set('view', state.view);
     if (state.view === 'document' && state.doc?.name) params.set('name', state.doc.name);
     window.history.replaceState(null, '', `/erp${params.size ? '?' + params.toString() : ''}`);
   }
@@ -102,20 +104,22 @@
     window.setTimeout(() => box.remove(), 5500);
   }
   function showLogin(error = '', username = '') {
+    marking?.dispose(); marking = null;
     state.session = null; state.company = ''; state.doc = null; state.rows = []; state.dirty = false; state.loading = false; state.recoveryIssue = false; state.unknown = null; state.authIssue = false;
     app.innerHTML = `<main id="content" class="server-login"><div class="server-brand"><span class="brand">B</span>${btn('theme', icon('theme'), 'icon-btn', 'aria-label="Сменить тему"')}</div><h1>ERP Basic</h1><p class="server-login-note">Вход в рабочую систему</p>${error ? `<div class="server-error" role="alert">${esc(error)}</div>` : ''}<form id="server-login-form"><div class="field"><label for="server-username">Пользователь</label><input id="server-username" name="username" value="${esc(username)}" autocomplete="username" required autofocus></div><div class="field"><label for="server-password">Пароль</label><input id="server-password" name="password" type="password" autocomplete="current-password" required></div><button class="btn primary" type="submit">Войти</button></form><p class="server-login-note">Используйте учётную запись этого сервера. Организации и доступные действия определяются вашими правами.</p></main>`;
     document.getElementById('server-username')?.focus();
   }
   function shell() {
-    const module = ['stock', 'exchange'].includes(state.view) ? state.view : specs[state.kind]?.module || 'home';
+    const module = ['stock', 'exchange', 'marking'].includes(state.view) ? state.view : specs[state.kind]?.module || 'home';
     const readable = Object.entries(specs).filter(([kind]) => capability(kind, 'read'));
-    const rail = Object.entries(modules).filter(([name]) => name === 'home' || (name === 'exchange' && canExchange()) || readable.some(([, spec]) => spec.module === name));
-    const title = state.view === 'document' ? (state.doc?.name || `Новый: ${specs[state.kind].singular.toLowerCase()}`) : (state.view === 'stock' ? 'Остатки и стоимость' : state.view === 'exchange' ? 'Журнал обмена' : state.view === 'recovery' ? 'Незавершённая операция' : specs[state.kind]?.title || 'Рабочее место');
-    app.innerHTML = `<div class="app-shell"><nav class="rail" aria-label="Разделы"><a class="brand" href="/erp" data-nav="home" aria-label="ERP Basic: главная">B</a>${rail.map(([name, [label, glyph]]) => `<a class="rail-link ${module === name ? 'active' : ''}" href="/erp" data-module="${name}" title="${label}" aria-label="${label}">${icon(glyph)}</a>`).join('')}<div class="rail-bottom">${btn('theme', icon('theme'), 'icon-btn', 'aria-label="Сменить тему"')}<span class="avatar" title="${esc(state.session.full_name || state.session.user)}">${esc((state.session.full_name || state.session.user || '?').slice(0, 1))}</span></div></nav><aside id="server-sidebar" class="sidebar"><div class="side-title">${modules[module][0]}</div><div class="side-tools"><label for="server-company" class="server-field-hint">Организация</label><select id="server-company" class="server-company" aria-label="Организация" ${state.busy || state.unknown || state.recoveryIssue ? 'disabled' : ''}>${state.session.companies.map(row => `<option value="${esc(row.name)}" ${row.name === state.company ? 'selected' : ''}>${esc(row.name)}</option>`).join('')}</select></div><nav class="side-nav" aria-label="Документы">${readable.filter(([, spec]) => module === 'home' || spec.module === module).map(([kind, spec]) => `<a class="side-item ${state.kind === kind ? 'active' : ''}" href="/erp?kind=${encodeURIComponent(kind)}" data-kind="${kind}">${spec.title}</a>`).join('')}${(module === 'stock' || module === 'home') && (capability('stockDocs', 'read') || capability('inventory', 'read')) ? `<a class="side-item ${state.view === 'stock' ? 'active' : ''}" href="/erp?view=stock" data-action="stock-report">Остатки и стоимость</a>` : ''}${module === 'exchange' ? '<a class="side-item active" href="/erp?view=exchange" data-action="exchange-journal">Журнал обмена</a>' : ''}</nav><div class="side-footer"><div class="server-connected">Серверный режим</div><div class="server-role">${esc(state.session.full_name || state.session.user)}</div>${btn('logout', icon('logout') + ' Выйти', 'outline', state.busy ? 'disabled' : '')}</div></aside><button type="button" class="mobile-overlay" data-action="close-menu" aria-label="Закрыть разделы" tabindex="-1"></button><main class="workspace" id="content"><header class="topbar">${btn('menu', icon('menu'), 'icon-btn mobile-toggle', 'aria-label="Открыть разделы" aria-controls="server-sidebar" aria-expanded="false"')}<div class="top-title"><strong>${esc(title)}</strong><span class="server-top-company">${esc(state.company)}</span></div><div class="actions" id="server-actions">${actions()}</div></header><div id="server-content"></div></main></div>`;
+    const rail = Object.entries(modules).filter(([name]) => name === 'home' || (name === 'exchange' && canExchange()) || (name === 'marking' && canMarking()) || readable.some(([, spec]) => spec.module === name));
+    const title = state.view === 'document' ? (state.doc?.name || `Новый: ${specs[state.kind].singular.toLowerCase()}`) : (state.view === 'stock' ? 'Остатки и стоимость' : state.view === 'exchange' ? 'Журнал обмена' : state.view === 'marking' ? 'Маркировка' : state.view === 'recovery' ? 'Незавершённая операция' : specs[state.kind]?.title || 'Рабочее место');
+    app.innerHTML = `<div class="app-shell"><nav class="rail" aria-label="Разделы"><a class="brand" href="/erp" data-nav="home" aria-label="ERP Basic: главная">B</a>${rail.map(([name, [label, glyph]]) => `<a class="rail-link ${module === name ? 'active' : ''}" href="/erp" data-module="${name}" title="${label}" aria-label="${label}">${icon(glyph)}</a>`).join('')}<div class="rail-bottom">${btn('theme', icon('theme'), 'icon-btn', 'aria-label="Сменить тему"')}<span class="avatar" title="${esc(state.session.full_name || state.session.user)}">${esc((state.session.full_name || state.session.user || '?').slice(0, 1))}</span></div></nav><aside id="server-sidebar" class="sidebar"><div class="side-title">${modules[module][0]}</div><div class="side-tools"><label for="server-company" class="server-field-hint">Организация</label><select id="server-company" class="server-company" aria-label="Организация" ${state.busy || state.unknown || state.recoveryIssue ? 'disabled' : ''}>${state.session.companies.map(row => `<option value="${esc(row.name)}" ${row.name === state.company ? 'selected' : ''}>${esc(row.name)}</option>`).join('')}</select></div><nav class="side-nav" aria-label="Документы">${readable.filter(([, spec]) => module === 'home' || spec.module === module).map(([kind, spec]) => `<a class="side-item ${state.kind === kind ? 'active' : ''}" href="/erp?kind=${encodeURIComponent(kind)}" data-kind="${kind}">${spec.title}</a>`).join('')}${(module === 'stock' || module === 'home') && (capability('stockDocs', 'read') || capability('inventory', 'read')) ? `<a class="side-item ${state.view === 'stock' ? 'active' : ''}" href="/erp?view=stock" data-action="stock-report">Остатки и стоимость</a>` : ''}${module === 'exchange' ? '<a class="side-item active" href="/erp?view=exchange" data-action="exchange-journal">Журнал обмена</a>' : ''}${module === 'marking' ? '<a class="side-item active" href="/erp?view=marking" data-action="marking-workspace">Рабочие места</a>' : ''}</nav><div class="side-footer"><div class="server-connected">Серверный режим</div><div class="server-role">${esc(state.session.full_name || state.session.user)}</div>${btn('logout', icon('logout') + ' Выйти', 'outline', state.busy ? 'disabled' : '')}</div></aside><button type="button" class="mobile-overlay" data-action="close-menu" aria-label="Закрыть разделы" tabindex="-1"></button><main class="workspace" id="content"><header class="topbar">${btn('menu', icon('menu'), 'icon-btn mobile-toggle', 'aria-label="Открыть разделы" aria-controls="server-sidebar" aria-expanded="false"')}<div class="top-title"><strong>${esc(title)}</strong><span class="server-top-company">${esc(state.company)}</span></div><div class="actions" id="server-actions">${actions()}</div></header><div id="server-content"></div></main></div>`;
     renderContent();
   }
   function actions() {
     if (state.loading || state.recoveryIssue) return '';
+    if (state.view === 'marking') return '';
     if (state.view === 'exchange') return btn('refresh-exchange', icon('refresh'), 'icon-btn', 'aria-label="Обновить журнал обмена"');
     if (state.view === 'stock') return btn('refresh-stock', icon('refresh'), 'icon-btn', 'aria-label="Обновить остатки"');
     if (state.view === 'list') return `${btn('refresh', icon('refresh'), 'icon-btn', 'aria-label="Обновить список"')}${capability(state.kind, 'create') ? btn('new', icon('plus') + ' Создать', 'primary') : ''}`;
@@ -133,11 +137,26 @@
   }
   function renderContent() {
     const content = document.getElementById('server-content'); if (!content) return;
+    if (state.view !== 'marking' && marking) { marking.dispose(); marking = null; }
     if (state.view === 'recovery') { content.innerHTML = messages() + renderRecovery(); return; }
     if (!state.company) { content.innerHTML = '<div class="server-empty"><h2>Нет доступных организаций</h2><p>Администратор должен предоставить доступ к организации и назначить рабочие роли.</p></div>'; return; }
+    if (state.view === 'marking' && marking) { marking.mount(content); return; }
     if (state.loading) { content.innerHTML = '<div class="server-loading" role="status">Загружаем данные сервера…</div>'; return; }
     content.innerHTML = messages() + (state.view === 'document' ? renderDocument() : state.view === 'list' ? renderList() : state.view === 'stock' ? renderStock() : state.view === 'exchange' ? renderExchange() : renderHome());
     const actionsBox = document.getElementById('server-actions'); if (actionsBox) actionsBox.innerHTML = actions();
+  }
+  function syncMarkingLocks() {
+    if (state.view !== 'marking' || !marking) return;
+    const company = document.getElementById('server-company'); if (company) company.disabled = state.busy || marking.locked();
+    const logout = document.querySelector('[data-action="logout"]'); if (logout) logout.disabled = state.busy || marking.state.busy;
+  }
+  async function loadMarking(options = {}) {
+    ++state.requestId; state.view = 'marking'; state.kind = ''; state.doc = null; state.serverDocument = null; state.dirty = false; state.error = ''; state.loading = false; state.unknown = null; state.recoveryIssue = false;
+    if (!marking || marking.company !== state.company || options.pending || options.queued) {
+      marking?.dispose();
+      marking = new window.ERPBasicMarking.Workspace({ api, session: state.session, company: state.company, ...options, onLock: syncMarkingLocks, onAuth: reauthenticate });
+    }
+    shell(); setUrl();
   }
   function renderRecovery() {
     if (!state.unknown) return '';
@@ -148,6 +167,12 @@
   async function restoreRecovery() {
     try {
       const pending = await api.recovery();
+      const queued = window.ERPBasicMarking.recovery(state.session);
+      if (queued || pending && window.ERPBasicAPI.isMarkingCommand(pending.method)) {
+        if (pending && !window.ERPBasicAPI.isMarkingCommand(pending.method) || pending && queued && pending.company !== queued.company) throw new ApiError('Незавершённые операции относятся к разным контекстам. Проверьте их на сервере.', { code: 'RECOVERY_CORRUPT' });
+        state.company = pending?.company || queued.company;
+        await loadMarking({ pending, queued }); return true;
+      }
       if (!pending) return false;
       if (!specs[pending.params.kind] || (pending.method === 'create_related' && !specs[pending.params.target_kind])) throw new ApiError('Вид документа незавершённой операции больше не поддерживается.', { code: 'RECOVERY_CORRUPT' });
       state.company = pending.company; state.kind = pending.params.kind; state.view = 'recovery'; state.doc = null; state.serverDocument = null; state.dirty = false; state.loading = false;
@@ -303,6 +328,7 @@
     return doc;
   }
   function leaveAllowed() {
+    if (state.view === 'marking' && marking && !marking.leaveAllowed()) return false;
     if (state.busy) { toast('Дождитесь ответа сервера.'); return false; }
     if (state.recoveryIssue) { toast('Сначала проверьте незавершённую операцию или выйдите из системы.'); return false; }
     if (state.unknown) { toast('Сначала подтвердите результат предыдущей операции повтором того же запроса.'); return false; }
@@ -472,6 +498,7 @@
         shell(); setUrl(); return;
       }
       state.session = session; state.authIssue = false; state.error = state.unknown ? 'Сессия восстановлена. Повторите тот же запрос, чтобы получить сохранённый результат.' : '';
+      if (marking) marking.refreshSession(session);
       closeDialog(); shell(); toast('Сессия восстановлена.');
     } catch (error) {
       const errorBox = document.getElementById('reauth-error');
@@ -481,16 +508,16 @@
     }
   }
   async function logout() {
-    if (state.busy) return;
-    if (state.unknown || state.recoveryIssue) {
-      if (!window.confirm('Результат предыдущей операции не подтверждён. Безопаснее повторить тот же запрос. При выходе служебная запись восстановления будет удалена: после нового входа сначала найдите созданный документ на сервере и только затем вводите его снова. Всё равно выйти?')) return;
+    if (state.busy || marking?.state.busy) return;
+    if (state.unknown || state.recoveryIssue || marking?.hasUnconfirmed()) {
+      if (!window.confirm('Результат предыдущей операции не подтверждён. Безопаснее повторить тот же запрос. При выходе служебная запись восстановления и очередь сканов будут удалены. После нового входа сначала найдите созданный документ на сервере или откройте задание маркировки и проверьте результат операции. Только затем вводите данные снова. Всё равно выйти?')) return;
     } else if (!leaveAllowed()) return;
-    state.busy = true; shell();
-    try { await api.logout(); ++state.requestId; state.unknown = null; showLogin(); }
+    marking?.suspend(true); state.busy = true; shell();
+    try { await api.logout(); new window.ERPBasicMarking.ScanStore().clear(); ++state.requestId; state.unknown = null; showLogin(); }
     catch (error) {
       if (!api.user) showLogin('Вы вышли из системы, но браузер не позволил удалить служебную запись восстановления. Очистите данные этого сайта перед передачей устройства другому человеку.');
       else state.error = error.message;
-    } finally { state.busy = false; if (state.session) shell(); }
+    } finally { state.busy = false; marking?.suspend(false); if (state.session) shell(); }
   }
   async function start() {
     const id = ++state.requestId;
@@ -504,6 +531,7 @@
       if (id !== state.requestId) return;
       if (!state.company) { shell(); return; }
       const kind = params.get('kind'); const name = params.get('name');
+      if (params.get('view') === 'marking' && canMarking()) { await loadMarking(); return; }
       if (params.get('view') === 'exchange' && canExchange()) { await loadExchange(); return; }
       if (params.get('view') === 'stock') { await loadStock(); return; }
       if (kind && specs[kind] && capability(kind, 'read')) { if (name) await loadDocument(name, kind); else await loadList(kind, { search: '' }); }
@@ -521,7 +549,10 @@
     document.querySelector('.mobile-overlay')?.classList.toggle('visible', visible);
     document.querySelector('[data-action="menu"]')?.setAttribute('aria-expanded', String(visible));
   }
-  document.addEventListener('keydown', event => { if (event.key === 'Escape') setMenu(false); });
+  document.addEventListener('keydown', event => {
+    if (event.key === 'Escape') setMenu(false);
+    if (event.key === 'F2' && state.view === 'marking' && marking?.canScan()) { event.preventDefault(); document.getElementById('marking-scan')?.focus(); }
+  });
   document.addEventListener('click', async event => {
     const target = event.target.closest('a,button'); if (!target || !app.contains(target) && !dialog.contains(target)) return;
     if (target.dataset.nav || target.dataset.module || target.dataset.kind || target.dataset.document || target.dataset.linkedKind) {
@@ -532,6 +563,7 @@
       const module = target.dataset.module || 'home';
       if (module === 'home') { ++state.requestId; state.view = 'home'; state.kind = ''; state.doc = null; state.dirty = false; state.error = ''; state.loading = false; shell(); setUrl(); return; }
       if (module === 'exchange' && canExchange()) return loadExchange();
+      if (module === 'marking' && canMarking()) return loadMarking();
       const kind = Object.keys(specs).find(kind => specs[kind].module === module && capability(kind, 'read'));
       if (kind) return loadList(kind, { search: '' }); return;
     }
@@ -546,6 +578,7 @@
     if (action === 'retry-document' && state.requestedName) return loadDocument(state.requestedName);
     if (action === 'close-dialog') return closeDialog();
     if (action === 'logout') return logout();
+    if (action === 'marking-workspace' && leaveAllowed()) return loadMarking();
     if (action === 'exchange-journal' && leaveAllowed()) return loadExchange();
     if (action === 'refresh-exchange' && !state.busy) return loadExchange(state.start);
     if (action === 'exchange-prev') return loadExchange(Math.max(0, state.start - state.pageLength));
@@ -558,7 +591,7 @@
     if (action === 'stock-next') return loadStock(state.start + state.pageLength);
     if (action === 'new' && leaveAllowed()) return newDocument();
     if (action === 'back' && leaveAllowed()) return loadList(state.kind);
-    if (action === 'refresh') { if (state.view === 'list') return loadList(state.kind, { start: state.start }); if (state.view === 'stock') return loadStock(state.start); if (state.view === 'exchange') return loadExchange(state.start); return start(); }
+    if (action === 'refresh') { if (state.view === 'list') return loadList(state.kind, { start: state.start }); if (state.view === 'stock') return loadStock(state.start); if (state.view === 'exchange') return loadExchange(state.start); if (state.view === 'marking') return loadMarking(); return start(); }
     if (action === 'page-prev') return loadList(state.kind, { start: Math.max(0, state.start - state.pageLength) });
     if (action === 'page-next') return loadList(state.kind, { start: state.start + state.pageLength });
     if (action === 'reload-document' && leaveAllowed()) return loadDocument(state.doc.name);
@@ -620,12 +653,13 @@
       if (state.kind) return loadList(state.kind, { search: '' });
       if (state.view === 'stock') { state.warehouse = ''; return loadStock(); }
       if (state.view === 'exchange') return loadExchange();
+      if (state.view === 'marking') return loadMarking();
       state.view = 'home'; state.error = ''; shell(); setUrl();
     } else if (target.id === 'server-page-size') { state.pageLength = Number(target.value); return loadList(state.kind); }
     else if (target.dataset.field === 'stock_entry_type') { state.doc.purpose = target.value; renderContent(); }
     else if (target.dataset.field === 'party_type') { state.doc.party = ''; state.doc.references = []; renderContent(); }
   });
   dialog.addEventListener('close', () => { const password = dialog.querySelector('input[type=password]'); if (password) password.value = ''; state.lookup = null; });
-  window.addEventListener('beforeunload', event => { if (state.dirty || state.busy || state.unknown || state.recoveryIssue) { event.preventDefault(); event.returnValue = ''; } });
+  window.addEventListener('beforeunload', event => { if (state.dirty || state.busy || state.unknown || state.recoveryIssue || marking?.locked() || marking?.dirty()) { event.preventDefault(); event.returnValue = ''; } });
   start();
 })();
